@@ -1,658 +1,460 @@
 /* --- Reset y base --- */
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #a8edea, #43cea2);
-  color: #333;
+    font-family: 'Segoe UI', sans-serif;
+    /* Fondo degradado suave */
+    background: linear-gradient(135deg, #a8edea, #43cea2);
+    color: #333;
+    /* Evita el desplazamiento horizontal en móviles */
+    overflow-x: hidden;
+}
+
+/* --- Contenedor Principal (para centrar contenido si es necesario) --- */
+.container {
+    max-width: 1200px; /* Ancho máximo para el PC */
+    margin: 0 auto;
+    padding: 0 15px; /* Pequeño padding lateral para móviles */
 }
 
 /* --- Header --- */
 header {
-  background: #009688;
-  color: white;
-  padding: 20px 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+    background: #009688;
+    color: white;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 header h1 {
-  font-size: 2rem;
+    font-size: 2rem;
+    white-space: nowrap; /* Evita que el título se rompa */
 }
 
 header button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 15px;
-  cursor: pointer;
-  background: #4caf50;
-  color: white;
-  font-size: 1rem;
-  transition: 0.3s;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    background: #4caf50;
+    color: white;
+    font-size: 0.95rem;
+    transition: 0.3s;
+    font-weight: bold;
 }
 header button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
-/* --- Sección productos --- */
+/* --- Sección Productos y Buscador --- */
 .titulo-buscador {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 20px;
+    display: flex;
+    flex-wrap: wrap; /* Permite que los elementos salten de línea en móvil */
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 15px;
+    gap: 15px; /* Espacio entre el título y el buscador */
 }
 
 #buscador {
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  width: 200px;
-  transition: 0.3s;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    width: 200px; /* Ancho fijo en PC */
+    transition: 0.3s;
 }
 
 #buscador:focus {
-  outline: none;
-  border-color: #4caf50;
-  box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+    outline: none;
+    border-color: #4caf50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
 }
 
-/* --- Carrusel --- */
+/* --- Carrusel (Optimización para Scroll Horizontal) --- */
 .carrusel-container {
-  display: flex;
-  align-items: center;
-  margin: 0 20px 40px 20px;
+    display: flex;
+    align-items: center;
+    margin: 0 15px 40px 15px;
 }
 
 .carrusel {
-  display: flex;
-  overflow-x: auto;
-  gap: 20px;
-  scroll-behavior: smooth;
-  padding: 10px 0;
+    /* Clave: Permite el scroll horizontal fluido */
+    display: flex;
+    overflow-x: auto;
+    gap: 15px; /* Menos espacio en móvil */
+    scroll-behavior: smooth;
+    padding: 10px 0;
+    -webkit-overflow-scrolling: touch; /* Mejora el scroll en iOS */
 }
 
-.carrusel::-webkit-scrollbar {
-  height: 10px;
-}
-
-.carrusel::-webkit-scrollbar-thumb {
-  background: #4caf50;
-  border-radius: 5px;
-}
-
+/* Ocultar botones de carrusel en móvil (el scroll es suficiente) */
 .btn-carrusel {
-  background: #009688;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  padding: 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  margin: 0 5px;
+    background: #009688;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 0 5px;
+    flex-shrink: 0; /* Evita que el botón se reduzca */
 }
 .btn-carrusel:hover { background: #00796b; }
 
-/* --- Productos --- */
+/* --- Productos (Cards) --- */
 .producto {
-  flex: 0 0 220px;
-  height: 420px;
-  background: #e0f7fa;
-  border-radius: 20px;
-  padding: 15px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: 0.3s;
+    /* Define el ancho de la tarjeta para PC */
+    flex: 0 0 220px;
+    height: 420px;
+    background: #e0f7fa;
+    border-radius: 15px; /* Ligeramente más pequeño para móvil */
+    padding: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 .producto:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    transform: translateY(-4px); /* Animación más sutil */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
 }
 .producto img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 15px;
-  margin-bottom: 10px;
+    width: 100%;
+    height: 180px; /* Un poco menos alto */
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
 }
 .producto h3 {
-  font-size: 1.1rem;
-  margin-bottom: 5px;
+    font-size: 1rem; /* Ligeramente más pequeño en móvil */
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .producto p {
-  font-size: 0.95rem;
-  margin-bottom: 5px;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
 }
 
 /* --- Botones producto --- */
 .btn-editar, .btn-eliminar {
-  padding: 6px 10px;
-  margin: 2px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 0.9rem;
+    padding: 8px 12px;
+    margin: 2px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
 }
 .btn-editar { background: #4caf50; color: white; }
 .btn-eliminar { background: #f44336; color: white; }
-.btn-editar:hover { background: #388e3c; }
-.btn-eliminar:hover { background: #d32f2f; }
+.btn-editar:active, .btn-eliminar:active { transform: scale(0.95); }
 
 /* --- Modales --- */
 .modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-  animation: fadeIn 0.5s;
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    overflow-y: auto; /* Permite scroll si el contenido es largo en móvil */
+    padding: 20px 0;
 }
 
-.add-panel, .fact-panel {
-  background: #ffffff;
-  border-radius: 25px;
-  padding: 30px;
-  width: 450px;
-  max-width: 90%;
-  box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-  text-align: center;
-  animation: slideIn 0.5s;
-  position: relative;
+.add-panel, .fact-panel, .recibo-panel, .confirm-panel {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 25px;
+    width: 400px;
+    max-width: 95%; /* Asegura que siempre quepa en la pantalla */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    text-align: center;
+    position: relative;
+    /* Centrar verticalmente en móvil si no hay scroll */
+    margin: auto; 
 }
 
-.close {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
+/* Controles de formulario en modales */
 .add-panel input, .add-panel textarea,
-.fact-panel input {
-  display: block;
-  width: 90%;
-  margin: 10px auto;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  background: #f9f9f9;
+.fact-panel input, .recibo-panel input, .recibo-panel textarea {
+    display: block;
+    width: 100%; /* Ocupa todo el ancho disponible */
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    background: #f9f9f9;
 }
 
-.add-buttons, .fact-buttons {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 15px;
+.add-buttons, .fact-buttons, .recibo-buttons, .confirm-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.add-buttons button, .fact-buttons button {
-  border-radius: 12px;
-  padding: 10px 20px;
-  font-size: 1rem;
-  border: none;
-  cursor: pointer;
-  transition: 0.3s;
+.add-buttons button, .fact-buttons button, .recibo-buttons button, .confirm-buttons button {
+    flex: 1 1 45%; /* Reparto en dos columnas */
+    border-radius: 10px;
+    padding: 10px 15px;
+    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
 }
-.add-buttons button:hover, .fact-buttons button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-/* --- Imagen Factura --- */
-#factura-img {
-  max-width: 220px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 15px;
-  margin-bottom: 15px;
+.add-buttons button:hover, .fact-buttons button:hover, .recibo-buttons button:hover, .confirm-buttons button:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* --- Animaciones --- */
-@keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
-@keyframes slideIn { from {transform:translateY(-50px); opacity:0;} to {transform:translateY(0); opacity:1;} }
-
-/* --- Factura Printable --- */
-@media print {
-  body * { visibility: hidden; }
-  #factura-print, #factura-print * { visibility: visible; }
-  #factura-print { position: absolute; top:0; left:0; width:100%; }
+/* --- Historial Moderno --- */
+#historial-facturas .modal-content {
+    /* Usa un nombre de clase más genérico para el contenido del modal de historial */
+    background: #f9f9f9;
+    border: 2px solid #009688;
+    border-radius: 15px;
+    padding: 15px; /* Menos padding en general */
+    max-width: 95%; /* Ajuste a móvil */
+    width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
+
+/* Filtro fecha moderno */
+.bloque-fecha {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+}
+.bloque-fecha label {
+    flex-direction: column;
+    font-size: 0.85rem;
+}
+.bloque-fecha input[type="date"] {
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+.bloque-fecha button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-top: auto; /* Alinea los botones con los campos */
+}
+
+/* Items historial */
+.item-historial {
+    flex-direction: column; /* Apila en móvil */
+    align-items: flex-start;
+    padding: 10px;
+    gap: 8px;
+    border-left: 4px solid #009688;
+}
+.acciones-historial {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end; /* Mueve los botones a la derecha en móvil */
+    gap: 10px;
+    margin-top: 5px;
+}
+
+/* --- Responsive (Aplicando las adaptaciones) --- */
+@media (max-width: 768px) {
+    /* --- Header --- */
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+        gap: 10px;
+    }
+    header h1 {
+        font-size: 1.4rem;
+    }
+    header button {
+        width: 100%; /* Botones de encabezado de ancho completo */
+        margin-top: 5px;
+        font-size: 1rem;
+    }
+
+    /* --- Productos y Buscador --- */
+    .titulo-buscador {
+        margin: 15px;
+    }
+    #buscador {
+        width: 100%; /* Buscador de ancho completo en móvil */
+    }
+
+    /* --- Carrusel --- */
+    .btn-carrusel {
+        display: none; /* Ocultar botones de navegación en móvil */
+    }
+    .carrusel-container {
+        margin: 0 0 30px 0; /* Ajustar márgenes para que el carrusel ocupe todo el ancho */
+    }
+    .carrusel {
+        padding: 10px 15px; /* Agregar padding interno para que las cards no toquen los bordes */
+    }
+    .producto {
+        flex: 0 0 180px; /* Reducir el ancho de las tarjetas para que quepan dos o tres */
+        height: 350px;
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+    .producto img {
+        height: 120px;
+    }
+    .producto h3 {
+        font-size: 0.9rem;
+    }
+    .producto p {
+        font-size: 0.8rem;
+    }
+
+    /* --- Modales --- */
+    .add-panel, .fact-panel, .recibo-panel, .confirm-panel {
+        width: 95%;
+        padding: 15px;
+    }
+    .add-buttons button, .fact-buttons button, .recibo-buttons button, .confirm-buttons button {
+        flex: 1 1 100%; /* Botones en modales apilados (ancho completo) */
+    }
+    
+    /* Historial */
+    .item-historial {
+        flex-direction: column; 
+        align-items: flex-start;
+    }
+    .bloque-fecha {
+        flex-direction: column;
+    }
+    .bloque-fecha button {
+        width: 100%;
+        margin-top: 5px;
+    }
+}
+
+
+/* ==========================
+   Productos en Facturación (FactPanel)
+   ========================== */
 
 .lista-seleccion {
-  margin-top: 15px;
-  text-align: left;
-}
-.lista-seleccion .producto-cuadro {
-  border: 1px solid #ccc;
-  padding: 10px;
-  margin-bottom: 8px;
-  border-radius: 10px;
-}
-.lista-seleccion .btn-quitar {
-  background: #f44336;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  float: right;
-}
-.btn-mas {
-  display: block;
-  margin: 15px auto 0;
-  padding: 10px 20px;
-  background: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
+    margin-top: 15px;
+    text-align: left;
+    max-height: 250px; /* Limitar altura para que el modal no se desborde */
+    overflow-y: auto;
+    padding-right: 5px;
 }
 
+.lista-seleccion .producto-cuadro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f1f1f1;
+    border-radius: 10px;
+    padding: 8px;
+    margin-bottom: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.lista-seleccion .producto-cuadro:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
 
 .lista-seleccion .producto-img {
-  max-width: 80px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 5px;
-  display: block;
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-right: 10px;
 }
 
-
-/* --- Modal Confirmación --- */
-.confirm-panel {
-  background: #fff;
-  border-radius: 20px;
-  padding: 25px;
-  width: 350px;
-  max-width: 90%;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-  animation: zoomIn 0.3s ease;
-}
-
-.confirm-panel h3 {
-  margin-bottom: 20px;
-  font-size: 1.2rem;
-  color: #333;
-}
-
-.confirm-buttons {
-  display: flex;
-  justify-content: space-around;
-}
-
-.btn-si, .btn-no {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: 0.3s;
-}
-
-.btn-si {
-  background: #f44336;
-  color: white;
-}
-.btn-si:hover {
-  background: #d32f2f;
-}
-
-.btn-no {
-  background: #ccc;
-  color: #333;
-}
-.btn-no:hover {
-  background: #999;
-}
-
-/* Animación modal */
-@keyframes zoomIn {
-  from { transform: scale(0.7); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-
-/* =========================
-   📱 Ajustes Responsive
-   ========================= */
-@media (max-width: 768px) {
-  /* HEADER */
-  header {
+.lista-seleccion .producto-info {
+    flex: 1;
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    padding: 15px;
-  }
-  header h1 {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-  }
-  header button {
-    width: 100%;
-    font-size: 1rem;
-    margin-top: 5px;
-  }
+    gap: 3px;
+}
 
-  /* PRODUCTOS EN LISTA */
-  .carrusel {
-    flex-direction: column;
-    gap: 15px;
-    overflow-x: hidden; /* quitamos scroll horizontal */
-  }
-  .producto {
-    flex: 1 1 100%;
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    padding: 12px;
-  }
-  .producto img {
-    height: 150px;
-  }
-
-  /* MODALES GENERALES */
-  .add-panel,
-  .fact-panel,
-  .confirm-panel {
-    width: 95%;
-    max-width: 95%;
-    margin: 0 auto;
-    padding: 20px;
-    border-radius: 15px;
-  }
-
-  /* CAMPOS DE FORMULARIOS */
-  .add-panel input,
-  .add-panel textarea,
-  .fact-panel input {
-    width: 100%;
-    font-size: 1rem;
-  }
-
-  /* BOTONES */
-  .add-buttons,
-  .fact-buttons,
-  .confirm-buttons {
-    flex-direction: column;
-    gap: 10px;
-  }
-  .add-buttons button,
-  .fact-buttons button,
-  .confirm-buttons button {
-    width: 100%;
-    font-size: 1rem;
-    padding: 12px;
-  }
-
-  /* BUSCADOR */
-  .titulo-buscador {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  #buscador {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  /* FACTURA PRINT PREVIEW (cuando se abre en nueva ventana) */
-  .factura {
-    width: 100% !important;
-    padding: 10px;
+.lista-seleccion .producto-info .nombre {
+    font-weight: bold;
     font-size: 0.9rem;
-  }
-  .factura h1 {
-    font-size: 1.2rem;
-  }
-  .factura .producto-cuadro {
-    font-size: 0.85rem;
-    padding: 6px;
-  }
-  .factura .total {
+}
+.lista-seleccion .producto-info .detalle {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+/* Botón quitar producto */
+.lista-seleccion .btn-quitar {
+    flex-shrink: 0;
+    background: #f44336;
+    color: white;
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 0.8rem;
+}
+
+/* Botón agregar más productos */
+.btn-mas {
+    display: block;
+    width: 100%; /* Ancho completo */
+    margin: 15px 0 0;
+    padding: 10px;
+    background: #4caf50;
+    border-radius: 10px;
     font-size: 1rem;
-  }
 }
 
+/* --- Responsive Facturación (Optimizado) --- */
+@media (max-width: 500px) {
+    .lista-seleccion .producto-cuadro {
+        /* Permite que el cuadro se apile en pantallas muy pequeñas */
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 10px;
+    }
 
+    .lista-seleccion .producto-img {
+        width: 40px;
+        height: 40px;
+        order: 1;
+    }
 
-/* ======== MODALES ======== */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5); /* fondo oscuro */
-  justify-content: center;
-  align-items: center;
-}
+    .lista-seleccion .producto-info {
+        order: 2;
+        width: calc(100% - 70px); /* Ajusta para la imagen y el botón */
+    }
 
-/* Panel genérico */
-.modal-content, 
-.fact-panel, 
-.add-panel,
-.recibo-panel {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0px 6px 18px rgba(0,0,0,0.3);
-  max-width: 500px;
-  width: 90%;
-  margin: auto;
-  animation: fadeIn 0.3s ease;
+    .lista-seleccion .btn-quitar {
+        order: 3;
+        margin-left: auto;
+    }
 }
-
-/* Historial */
-#historial-facturas .modal-content {
-  background: #f9f9f9;
-  border: 2px solid #009688;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-/* Recibo de caja */
-.recibo-panel label {
-  display: block;
-  margin-top: 10px;
-  font-weight: bold;
-}
-.recibo-panel input, 
-.recibo-panel textarea {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-.recibo-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
-}
-.recibo-buttons button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #009688;
-  color: #fff;
-  font-weight: bold;
-  transition: background 0.2s;
-}
-.recibo-buttons button:hover {
-  background: #00796B;
-}
-
-/* Animación */
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-
-/* Historial General */
-#historial-facturas .modal-content {
-  background: #fff;
-  border: 3px solid #009688;
-  border-radius: 12px;
-  padding: 20px;
-  max-width: 700px;
-  width: 90%;
-  max-height: 85vh;
-  overflow-y: auto;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-}
-
-/* Items del historial */
-.item-historial {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-  margin: 10px 0;
-  padding: 12px;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background 0.2s;
-}
-.item-historial:hover {
-  background: #f1f1f1;
-}
-
-/* Botones del historial */
-.acciones-historial {
-  display: flex;
-  gap: 8px;
-}
-.acciones-historial .btn-ver,
-.acciones-historial .btn-recibo {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  color: #fff;
-  transition: transform 0.2s, background 0.2s;
-}
-.acciones-historial .btn-ver {
-  background: #2196F3;
-}
-.acciones-historial .btn-ver:hover {
-  background: #1976D2;
-  transform: scale(1.05);
-}
-.acciones-historial .btn-recibo {
-  background: #4CAF50;
-}
-.acciones-historial .btn-recibo:hover {
-  background: #388E3C;
-  transform: scale(1.05);
-}
-
-/* Botón cerrar historial */
-#btn-cerrar-historial {
-  background: #f44336;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  color: #fff;
-  font-weight: bold;
-  margin-top: 15px;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-}
-#btn-cerrar-historial:hover {
-  background: #d32f2f;
-  transform: scale(1.05);
-}
-
-/* 🔹 Bloque de datos de factura */
-.fact-datos {
-  margin-bottom: 15px;
-  padding: 12px;
-  border: 2px solid #009688;
-  border-radius: 8px;
-  background: #f9f9f9;
-}
-
-.fact-datos label {
-  font-weight: bold;
-  margin-bottom: 6px;
-  display: block;
-  color: #333;
-}
-
-/* Cliente input con botón X */
-.cliente-input {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.cliente-input input {
-  flex: 1;
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.cliente-input button {
-  padding: 6px 10px;
-  border: none;
-  background: #e74c3c;
-  color: #fff;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.cliente-input button:hover {
-  background: #c0392b;
-}
-
-/* Botones de método de pago */
-.metodo-pago {
-  display: flex;
-  gap: 10px;
-}
-
-.btn-metodo {
-  flex: 1;
-  padding: 8px;
-  border: 2px solid #009688;
-  border-radius: 6px;
-  background: #fff;
-  cursor: pointer;
-  font-weight: bold;
-  color: #009688;
-  transition: 0.2s;
-}
-
-.btn-metodo:hover {
-  background: #009688;
-  color: #fff;
-}
-
-.btn-metodo.activo {
-  background: #009688;
-  color: #fff;
-}
-

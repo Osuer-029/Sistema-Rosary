@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Servicios — Heladería Rosary</title>
+<link rel="stylesheet" href="servicios.css">
+</head>
+<body>
+<header>
+  <h1>📅 Servicios</h1>
+  <button id="btn-volver">🏠 Volver</button>
+</header>
+
+<main>
+  <section class="formulario">
+    <h2>Agregar Cliente</h2>
+    <input type="text" id="nombre" placeholder="Nombre del cliente">
+    <input type="email" id="correo" placeholder="Correo electrónico">
+    <input type="tel" id="telefono" placeholder="Teléfono">
+    <input type="date" id="fechaEntrada" placeholder="Fecha de ingreso">
+    <input type="number" id="monto" placeholder="Monto mensual">
+
+    <label for="servicio">Servicio</label>
+    <select id="servicio">
+      <option value="Netflix">🎬 Netflix</option>
+      <option value="Spotify">🎵 Spotify</option>
+      <option value="HBO">📺 HBO Max</option>
+      <option value="Disney+">🧞 Disney+</option>
+      <option value="Amazon Prime">🚀 Amazon Prime</option>
+      <option value="Otro">🧩 Otro</option>
+    </select>
+
+    <button id="btn-agregar">Agregar Servicio</button>
+  </section>
+
+  <section class="lista-clientes">
+    <h2>Clientes Registrados</h2>
+    <div id="clientes-lista"></div>
+  </section>
+</main>
+
+<!-- Modal de edición -->
+<div id="modal-editar" class="modal">
+  <div class="modal-content">
+    <h3>✏️ Editar Cliente</h3>
+    <input type="text" id="editar-nombre">
+    <input type="email" id="editar-correo">
+    <input type="tel" id="editar-telefono">
+    <input type="date" id="editar-fechaEntrada">
+    <input type="number" id="editar-monto">
+    <select id="editar-servicio">
+      <option value="Netflix">🎬 Netflix</option>
+      <option value="Spotify">🎵 Spotify</option>
+      <option value="HBO">📺 HBO Max</option>
+      <option value="Disney+">🧞 Disney+</option>
+      <option value="Amazon Prime">🚀 Amazon Prime</option>
+      <option value="Otro">🧩 Otro</option>
+    </select>
+    <div class="modal-btns">
+      <button id="guardar-edicion">💾 Guardar</button>
+      <button id="cancelar-edicion">❌ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="servicios.js"></script>
+</body>
+</html>

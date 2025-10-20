@@ -1,126 +1,136 @@
 // ================================
-// IndexedDB Helpers (DB v2: productos, facturas, recibos)
+// script.js - Heladería Rosary (con Firebase Firestore)
 // ================================
-let db;
-const DB_NAME = "heladeriaDB";
-const DB_VERSION = 2;
 
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+// **********************************
+// 1. INICIALIZACIÓN Y CONFIGURACIÓN DE FIREBASE
+// **********************************
+// CÓDIGO CORREGIDO: Usando las rutas completas del CDN de Firebase
 
-    request.onupgradeneeded = (e) => {
-      db = e.target.result;
-      if (!db.objectStoreNames.contains("productos")) {
-        db.createObjectStore("productos", { keyPath: "id", autoIncrement: true });
-      }
-      if (!db.objectStoreNames.contains("facturas")) {
-        db.createObjectStore("facturas", { keyPath: "id", autoIncrement: true });
-      }
-      if (!db.objectStoreNames.contains("recibos")) {
-        db.createObjectStore("recibos", { keyPath: "id", autoIncrement: true });
-      }
-    };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-analytics.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore.js";
 
-    request.onsuccess = (e) => {
-      db = e.target.result;
-      resolve(db);
-    };
+// ... (resto del código)
 
-    request.onerror = (e) => reject(e.target.error);
-  });
-}
+// Tu configuración de la aplicación web (de la consola de Firebase)
+const firebaseConfig = {
+  apiKey: "AIzaSyDi-yeyvgHQg0n2xAEeH_D-n4sx0OD3SSc",
+  authDomain: "sistema-anthony-7cea5.firebaseapp.com",
+  projectId: "sistema-anthony-7cea5",
+  storageBucket: "sistema-anthony-7cea5.firebasestorage.app",
+  messagingSenderId: "940908012115",
+  appId: "1:940908012115:web:204117d50beef619475ca6",
+  measurementId: "G-RZDC3CMSZQ"
+};
 
-function getStore(storeName, mode = "readonly") {
-  if (!db) throw new Error("IndexedDB no está inicializada. Llama a openDB() primero.");
-  const tx = db.transaction(storeName, mode);
-  return tx.objectStore(storeName);
-}
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app); // Opcional: para análisis
+const db = getFirestore(app); // 👈 **CLAVE: Inicializar Cloud Firestore**
+
 
 // ================================
-// CRUD Productos
+// CRUD Productos (usando Firestore)
 // ================================
-function addProducto(producto) {
-  return new Promise((resolve, reject) => {
-    const store = getStore("productos", "readwrite");
-    const req = store.add(producto);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = (e) => reject(e.target.error);
-  });
+async function addProducto(producto) {
+  try {
+    const docRef = await addDoc(collection(db, "productos"), producto);
+    console.log("Producto guardado con ID: ", docRef.id);
+    return docRef.id;
+  } catch (e) {
+    console.error("Error al añadir producto: ", e);
+    throw e;
+  }
 }
 
-function updateProducto(id, producto) {
-  return new Promise((resolve, reject) => {
-    const store = getStore("productos", "readwrite");
-    producto.id = id;
-    const req = store.put(producto);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = (e) => reject(e.target.error);
-  });
+async function updateProducto(id, producto) {
+  try {
+    const productoRef = doc(db, "productos", id);
+    await updateDoc(productoRef, producto);
+    return true;
+  } catch (e) {
+    console.error("Error al actualizar producto: ", e);
+    throw e;
+  }
 }
 
-function deleteProducto(id) {
-  return new Promise((resolve, reject) => {
-    const store = getStore("productos", "readwrite");
-    const req = store.delete(id);
-    req.onsuccess = () => resolve();
-    req.onerror = (e) => reject(e.target.error);
-  });
+async function deleteProducto(id) {
+  try {
+    await deleteDoc(doc(db, "productos", id));
+    return true;
+  } catch (e) {
+    console.error("Error al eliminar producto: ", e);
+    throw e;
+  }
 }
 
-function getAllProductos() {
-  return new Promise((resolve, reject) => {
-    const store = getStore("productos");
-    const req = store.getAll();
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = (e) => reject(e.target.error);
-  });
-}
-
-// ================================
-// CRUD Facturas
-// ================================
-function addFactura(factura) {
-  return new Promise((resolve, reject) => {
-    const store = getStore("facturas", "readwrite");
-    const req = store.add(factura);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = (e) => reject(e.target.error);
-  });
-}
-
-function getAllFacturas() {
-  return new Promise((resolve, reject) => {
-    const store = getStore("facturas");
-    const req = store.getAll();
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = (e) => reject(e.target.error);
-  });
+async function getAllProductos() {
+  try {
+    const productosCol = collection(db, "productos");
+    const snapshot = await getDocs(productosCol);
+    const productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return productos;
+  } catch (e) {
+    console.error("Error al obtener productos: ", e);
+    return [];
+  }
 }
 
 // ================================
-// CRUD Recibos
+// CRUD Facturas (usando Firestore)
 // ================================
-function addRecibo(recibo) {
-  return new Promise((resolve, reject) => {
-    const store = getStore("recibos", "readwrite");
-    const req = store.add(recibo);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = (e) => reject(e.target.error);
-  });
+async function addFactura(factura) {
+  try {
+    const docRef = await addDoc(collection(db, "facturas"), factura);
+    return docRef.id;
+  } catch (e) {
+    console.error("Error al añadir factura: ", e);
+    throw e;
+  }
 }
 
-function getAllRecibos() {
-  return new Promise((resolve, reject) => {
-    const store = getStore("recibos");
-    const req = store.getAll();
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = (e) => reject(e.target.error);
-  });
+async function getAllFacturas() {
+  try {
+    // Usamos query para ordenar por fecha, asumiendo que el campo es 'fechaFactura'
+    const q = query(collection(db, "facturas"), orderBy("fechaFactura", "desc"));
+    const snapshot = await getDocs(q);
+    const facturas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return facturas;
+  } catch (e) {
+    console.error("Error al obtener facturas: ", e);
+    return [];
+  }
 }
 
 // ================================
-// Referencias DOM (se asume script incluido al final del body)
+// CRUD Recibos (usando Firestore)
+// ================================
+async function addRecibo(recibo) {
+  try {
+    const docRef = await addDoc(collection(db, "recibos"), recibo);
+    return docRef.id;
+  } catch (e) {
+    console.error("Error al añadir recibo: ", e);
+    throw e;
+  }
+}
+
+async function getAllRecibos() {
+  try {
+    // Usamos query para ordenar por fecha, asumiendo que el campo es 'fecha'
+    const q = query(collection(db, "recibos"), orderBy("fecha", "desc"));
+    const snapshot = await getDocs(q);
+    const recibos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return recibos;
+  } catch (e) {
+    console.error("Error al obtener recibos: ", e);
+    return [];
+  }
+}
+
+// ================================
+// Referencias DOM (Mismo código, sin cambios)
 // ================================
 const listaProductos = document.getElementById("lista-productos");
 const btnAbrirAgregar = document.getElementById("btn-abrir-agregar");
@@ -150,15 +160,22 @@ const btnHistorial = document.getElementById("btn-historial");
 const btnCerrarHistorial = document.getElementById("btn-cerrar-historial");
 const listaFacturasContainer = document.getElementById("lista-facturas");
 const listaRecibosContainer = document.getElementById("lista-recibos");
-const inputCliente = document.getElementById("factura-cliente");
-const btnBorrarCliente = document.getElementById("btn-borrar-cliente");
-const metodoBtns = document.querySelectorAll(".btn-metodo");
+
+// === Referencias correctas para los campos del modal de Facturación ===
+const inputCliente = document.getElementById("inputCliente");
+const metodoPagoSelect = document.getElementById("metodoPago");
+
+// proteger si el select no existe por alguna razón
+if (metodoPagoSelect) {
+  metodoPagoSelect.addEventListener("change", (e) => {
+    metodoSeleccionado = e.target.value;
+  });
+}
 
 let metodoSeleccionado = "Efectivo"; // valor por defecto
 
-
 // ================================
-// Estado local
+// Estado local (Mismo código, sin cambios)
 // ================================
 let productos = [];
 let editId = null;
@@ -166,7 +183,7 @@ let productoAEliminar = null;
 let productosSeleccionados = [];
 
 // ================================
-// Utiles
+// Utiles (Mismo código, sin cambios)
 // ================================
 function toBase64(file) {
   return new Promise((resolve,reject)=>{
@@ -177,66 +194,90 @@ function toBase64(file) {
   });
 }
 
+function mostrarMensajeVisual(texto, tipo = "success") {
+  // pequeño snackbar visual (no bloqueante)
+  const msj = document.createElement("div");
+  msj.className = `mensaje-flotante ${tipo}`;
+  msj.textContent = texto;
+  document.body.appendChild(msj);
+  setTimeout(()=> msj.classList.add("visible"), 50);
+  setTimeout(()=> {
+    msj.classList.remove("visible");
+    setTimeout(()=> msj.remove(), 400);
+  }, 2200);
+}
+
 // ================================
-// Cargar / Mostrar Productos
+// Cargar / Mostrar Productos (Mismo código, sin cambios lógicos)
 // ================================
 async function cargarProductos() {
-  productos = await getAllProductos();
+  // Ahora llama a la versión de Firestore
+  productos = await getAllProductos(); 
   mostrarProductos(productos);
 }
 
+// ================================
+// Mostrar productos en la lista principal (Mismo código, sin cambios)
+// ================================
 function mostrarProductos(lista) {
   listaProductos.innerHTML = "";
+
   lista.forEach(p => {
     const div = document.createElement("div");
     div.classList.add("producto");
     div.innerHTML = `
-      <img src="${p.imagen || ''}" alt="${p.nombre || ''}">
-      <h3>${p.nombre || ''}</h3>
+      ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}">` : ""}
+      <h3>${p.nombre || 'Sin nombre'}</h3>
       <p>${p.descripcion || ''}</p>
       <p>RD$ ${Number(p.precio).toFixed(2)}</p>
-      <p>Stock: ${p.stock}</p>
-      <div>
-        <button class="btn-editar">Editar</button>
-        <button class="btn-eliminar">Eliminar</button>
+      <p>Stock: ${p.stock !== undefined ? p.stock : '-'}</p>
+      <div class="botones-principal">
+        <button class="btn-editar">✏️ Editar</button>
+        <button class="btn-eliminar">🗑️ Eliminar</button>
       </div>
     `;
+    listaProductos.appendChild(div);
 
-    // click general abre facturación (si no se clickea editar/eliminar)
-    div.addEventListener("click", e => {
-      if (!e.target.classList.contains("btn-editar") && !e.target.classList.contains("btn-eliminar")) {
-        abrirFacturacion(p);
-      }
+    // Clic en producto -> agrega a factura
+    div.addEventListener("click", () => {
+      productosSeleccionados.push(Object.assign({}, p));
+      modalFacturacion.style.display = "flex";
+      mostrarFactura();
     });
 
-    // Editar
-    const btnEditar = div.querySelector(".btn-editar");
-    btnEditar.addEventListener("click", e => {
+    // Botón Editar
+    div.querySelector(".btn-editar").addEventListener("click", e => {
       e.stopPropagation();
-      editId = p.id;
-      document.getElementById("nombre").value = p.nombre || "";
-      document.getElementById("descripcion").value = p.descripcion || "";
-      document.getElementById("precio").value = p.precio;
-      document.getElementById("stock").value = p.stock;
-      modalAgregar.style.display = "flex";
+      editarProducto(p);
     });
 
-    // Eliminar
-    const btnEliminar = div.querySelector(".btn-eliminar");
-    btnEliminar.addEventListener("click", e => {
+    // Botón Eliminar
+    div.querySelector(".btn-eliminar").addEventListener("click", e => {
       e.stopPropagation();
       productoAEliminar = p;
       modalConfirmar.style.display = "flex";
     });
-
-    listaProductos.appendChild(div);
   });
 }
 
 // ================================
-// Modal Agregar Producto
+// Función para abrir modal de edición (Mismo código, sin cambios)
 // ================================
-btnAbrirAgregar.addEventListener("click", () => {
+function editarProducto(producto) {
+  editId = producto.id; // guardamos el id real para update
+  document.getElementById("nombre").value = producto.nombre || "";
+  document.getElementById("descripcion").value = producto.descripcion || "";
+  document.getElementById("precio").value = producto.precio || "";
+  document.getElementById("stock").value = producto.stock || "";
+  document.getElementById("imagen").value = ""; // no cargamos imagen por seguridad
+  modalAgregar.style.display = "flex";
+}
+
+
+// ================================
+// Modal Agregar Producto (Mismo código, sin cambios)
+// ================================
+if (btnAbrirAgregar) btnAbrirAgregar.addEventListener("click", () => {
   editId = null;
   document.getElementById("nombre").value = "";
   document.getElementById("descripcion").value = "";
@@ -246,31 +287,31 @@ btnAbrirAgregar.addEventListener("click", () => {
   modalAgregar.style.display = "flex";
 });
 
-btnCerrarAgregar.addEventListener("click", () => modalAgregar.style.display = "none");
-btnCancelarAgregar.addEventListener("click", () => modalAgregar.style.display = "none");
+if (btnCerrarAgregar) btnCerrarAgregar.addEventListener("click", () => modalAgregar.style.display = "none");
+if (btnCancelarAgregar) btnCancelarAgregar.addEventListener("click", () => modalAgregar.style.display = "none");
 
-btnAgregar.addEventListener("click", async () => {
+if (btnAgregar) btnAgregar.addEventListener("click", async () => {
   const nombre = document.getElementById("nombre").value.trim();
   const descripcion = document.getElementById("descripcion").value.trim();
   const precio = parseFloat(document.getElementById("precio").value);
   const stock = parseInt(document.getElementById("stock").value);
   const file = document.getElementById("imagen").files[0];
 
-  if (!precio || isNaN(precio) || !stock || isNaN(stock)) {
-    alert("Debe ingresar precio y stock obligatoriamente");
+  if (isNaN(precio) || isNaN(stock)) {
+    alert("Debe ingresar precio y stock válidos");
     return;
   }
 
   let imagenBase64 = "";
-  if (file) {
-    imagenBase64 = await toBase64(file);
-  }
+  if (file) imagenBase64 = await toBase64(file);
 
   const productoData = { nombre, descripcion, precio, stock, imagen: imagenBase64 };
 
   if (editId) {
+    // Llama a la nueva función updateProducto de Firestore
     await updateProducto(editId, productoData);
   } else {
+    // Llama a la nueva función addProducto de Firestore
     await addProducto(productoData);
   }
 
@@ -279,33 +320,44 @@ btnAgregar.addEventListener("click", async () => {
 });
 
 // ================================
-// Eliminar Producto
+// Eliminar Producto (confirmación) (Mismo código, sin cambios)
 // ================================
-btnConfirmarSi.addEventListener("click", async () => {
+if (btnConfirmarSi) btnConfirmarSi.addEventListener("click", async () => {
   if (productoAEliminar) {
-    await deleteProducto(productoAEliminar.id);
+    // Llama a la nueva función deleteProducto de Firestore
+    await deleteProducto(productoAEliminar.id); 
     productoAEliminar = null;
     await cargarProductos();
   }
   modalConfirmar.style.display = "none";
 });
-
-btnConfirmarNo.addEventListener("click", () => {
+if (btnConfirmarNo) btnConfirmarNo.addEventListener("click", () => {
   productoAEliminar = null;
   modalConfirmar.style.display = "none";
 });
 
 // ================================
-// Facturación (carrito simple y modal)
+// Facturación (selección automática y modal) (Mismo código, sin cambios)
 // ================================
-function abrirFacturacion(producto) {
-  productosSeleccionados.push(producto);
+function seleccionarProducto(producto) {
+  // Agregar copia para evitar referencias compartidas
+  productosSeleccionados.push(Object.assign({}, producto));
   mostrarFactura();
-  modalFacturacion.style.display = "flex";
+
+  // Si es el primer producto, abrimos modal automáticamente
+  if (productosSeleccionados.length === 1) {
+    modalFacturacion.style.display = "flex";
+  } else {
+    // si ya está abierto, mostramos un mensaje corto
+    mostrarMensajeVisual(`${producto.nombre || 'Producto'} agregado`, "success");
+  }
 }
 
+// Mostrar factura con todos los productos seleccionados (Mismo código, sin cambios)
 function mostrarFactura() {
   const panel = modalFacturacion.querySelector(".fact-panel");
+  if (!panel) return;
+
   const oldList = panel.querySelector(".lista-seleccion");
   if (oldList) oldList.remove();
 
@@ -313,19 +365,22 @@ function mostrarFactura() {
   lista.classList.add("lista-seleccion");
 
   let total = 0;
+
   productosSeleccionados.forEach((p, i) => {
     total += Number(p.precio);
     const item = document.createElement("div");
     item.classList.add("producto-cuadro");
-
     item.innerHTML = `
       ${p.imagen ? `<img src="${p.imagen}" class="producto-img" alt="Imagen producto">` : ""}
-      <p><strong>${p.nombre}</strong></p>
-      <p>${p.descripcion || ""}</p>
-      <p>RD$ ${Number(p.precio).toFixed(2)}</p>
-      <button data-index="${i}" class="btn-quitar">❌ Quitar</button>
+      <div class="producto-info">
+        <p><strong>${p.nombre}</strong></p>
+        <p>${p.descripcion || ""}</p>
+        <p>RD$ ${Number(p.precio).toFixed(2)}</p>
+      </div>
+      <div class="fact-controls">
+        <button data-index="${i}" class="btn-quitar">❌ Quitar</button>
+      </div>
     `;
-
     lista.appendChild(item);
   });
 
@@ -334,16 +389,20 @@ function mostrarFactura() {
   totalDiv.textContent = `Total: RD$ ${total.toFixed(2)}`;
   lista.appendChild(totalDiv);
 
-  const btnMas = document.createElement("button");
-  btnMas.textContent = "➕ Agregar más productos";
-  btnMas.classList.add("btn-mas");
-  btnMas.addEventListener("click", () => {
+  // Botón para agregar más productos
+  const btnSeguir = document.createElement("button");
+  btnSeguir.textContent = "➕ Agregar más productos";
+  btnSeguir.classList.add("btn-mas");
+  btnSeguir.addEventListener("click", () => {
     modalFacturacion.style.display = "none";
+    mostrarProductosDisponibles(); // volver a lista de productos
+    document.getElementById("productos").scrollIntoView({ behavior: "smooth" });
   });
-  lista.appendChild(btnMas);
+  lista.appendChild(btnSeguir);
 
   panel.appendChild(lista);
 
+  // Listeners para quitar productos
   lista.querySelectorAll(".btn-quitar").forEach(btn => {
     btn.addEventListener("click", e => {
       const idx = Number(e.target.dataset.index);
@@ -353,29 +412,73 @@ function mostrarFactura() {
   });
 }
 
-btnCerrarFactura.addEventListener("click", () => {
-  modalFacturacion.style.display = "none";
-});
-btnCancelarFactura.addEventListener("click", () => {
-  modalFacturacion.style.display = "none";
-  productosSeleccionados = [];
-});
+// Mostrar todos los productos disponibles (Mismo código, sin cambios)
+function mostrarProductosDisponibles() {
+  const listaProductos = document.getElementById("lista-productos");
+  listaProductos.innerHTML = ""; // Limpiamos lista actual
 
-// Facturar: pedir cliente y método (prompt) — luego guardar factura y crear recibo
-btnFacturar.addEventListener("click", async () => {
+  productos.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.classList.add("producto");
+    div.innerHTML = `
+      ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}">` : ""}
+      <h3>${p.nombre}</h3>
+      <p>${p.descripcion || ""}</p>
+      <p>RD$ ${Number(p.precio).toFixed(2)}</p>
+      <div class="botones-principal">
+        <button class="btn-editar">✏️ Editar</button>
+        <button class="btn-eliminar">🗑️ Eliminar</button>
+      </div>
+    `;
+    listaProductos.appendChild(div);
+
+    // Al hacer clic en el producto, se agrega automáticamente a la factura
+    div.addEventListener("click", () => {
+      productosSeleccionados.push(p);
+      modalFacturacion.style.display = "flex";
+      mostrarFactura();
+    });
+
+    // Botón Editar
+    div.querySelector(".btn-editar").addEventListener("click", e => {
+      e.stopPropagation(); // evita que agregue el producto al hacer clic aquí
+      editarProducto(p); 
+    });
+
+    // Botón Eliminar
+    div.querySelector(".btn-eliminar").addEventListener("click", e => {
+      e.stopPropagation();
+      productoAEliminar = p;
+      modalConfirmar.style.display = "flex";
+    });
+  });
+}
+
+
+// Inicializamos productos disponibles al cargar página
+// **Se cambia el orden para asegurar que Firestore esté inicializado**
+document.addEventListener('DOMContentLoaded', cargarProductos);
+
+
+// Cerrar modal facturación (botones) (Mismo código, sin cambios)
+if (btnCerrarFactura) btnCerrarFactura.addEventListener("click", () => { modalFacturacion.style.display = "none"; });
+if (btnCancelarFactura) btnCancelarFactura.addEventListener("click", () => { productosSeleccionados = []; mostrarFactura(); modalFacturacion.style.display = "none"; });
+
+// ================================
+// Generar Factura -> guarda + recibo + ticket pdf (Mismo código, sin cambios lógicos)
+// ================================
+if (btnFacturar) btnFacturar.addEventListener("click", async () => {
   if (productosSeleccionados.length === 0) {
-    alert("No hay productos seleccionados.");
+    mostrarMensajeVisual("No hay productos seleccionados.", "error");
     return;
   }
 
-  const total = productosSeleccionados.reduce((acc, p) => acc + Number(p.precio), 0);
+  const cliente = (inputCliente && inputCliente.value.trim()) ? inputCliente.value.trim() : "Consumidor Final";
+  const metodoPago = (metodoPagoSelect && metodoPagoSelect.value) ? metodoPagoSelect.value : metodoSeleccionado;
   const numeroFactura = "FAC-" + Date.now();
-  const fechaFactura = new Date().toLocaleString("es-DO");
-
-  // Pedir datos al cajero (prompt simple). Si quieres reemplazar por inputs en modal, lo hacemos.
-  const cliente = inputCliente.value.trim() || "Consumidor Final";
-  const metodoPago = metodoSeleccionado;
-
+  // Almacenar fecha en un formato ISO para facilitar consultas en Firestore
+  const fechaFactura = new Date().toISOString(); 
+  const total = productosSeleccionados.reduce((acc, p) => acc + Number(p.precio), 0);
 
   const facturaObj = {
     numeroFactura,
@@ -383,46 +486,63 @@ btnFacturar.addEventListener("click", async () => {
     productos: productosSeleccionados,
     total,
     cliente,
-    metodoPago
+    metodoPago,
+    // Formato de fecha local para impresión
+    fechaFacturaLocal: new Date().toLocaleString("es-DO", { hour12: true }) 
   };
 
-  await addFactura(facturaObj);
+  // guardar factura (Usa la función de Firestore)
+  try {
+    await addFactura(facturaObj);
+  } catch (err) {
+    console.error("Error guardando factura:", err);
+    mostrarMensajeVisual("Error guardando factura (revisa consola)", "error");
+    return;
+  }
 
-  // También guardamos un recibo de caja automático para este pago
+  // crear recibo automático (Usa la función de Firestore)
   const reciboObj = {
-    fecha: fechaFactura,
+    // Usar formato ISO para fecha para la BD, y local para impresión
+    fecha: new Date().toISOString(), 
     cliente,
     monto: total,
     concepto: `Pago factura ${numeroFactura}`,
-    origenFactura: numeroFactura
+    origenFactura: numeroFactura,
+    fechaLocal: new Date().toLocaleString("es-DO", { hour12: true })
   };
-  await addRecibo(reciboObj);
+  try { await addRecibo(reciboObj); } catch (e) { console.warn("No se guardó recibo:", e); }
 
-  // Imprimir factura
-  imprimirFactura(facturaObj);
+  mostrarMensajeVisual("✅ Factura generada con éxito", "success");
 
-  // Imprimir también un recibo de caja (ventana separada)
-  imprimirRecibo(reciboObj);
+  // generar ticket (jsPDF)
+  try {
+    generarFacturaTicket(facturaObj);
+  } catch (err) {
+    console.error("Error generando PDF:", err);
+    // fallback: imprimir HTML simple
+    imprimirFacturaHTML(facturaObj);
+  }
 
+  // limpiar y mantener modal cerrado
   productosSeleccionados = [];
+  mostrarFactura();
   modalFacturacion.style.display = "none";
+  await cargarHistorial();
 });
 
 // ================================
-// Recibo de Caja (modal manual)
+// Recibo de Caja (modal manual) (Mismo código, sin cambios lógicos)
 // ================================
-btnRecibo.addEventListener("click", () => {
-  // limpiar campos
+if (btnRecibo) btnRecibo.addEventListener("click", () => {
   document.getElementById("recibo-cliente").value = "";
   document.getElementById("recibo-monto").value = "";
   document.getElementById("recibo-concepto").value = "";
   modalRecibo.style.display = "flex";
 });
+if (btnCerrarRecibo) btnCerrarRecibo.addEventListener("click", () => modalRecibo.style.display = "none");
+if (btnCancelarRecibo) btnCancelarRecibo.addEventListener("click", () => modalRecibo.style.display = "none");
 
-btnCerrarRecibo.addEventListener("click", () => modalRecibo.style.display = "none");
-btnCancelarRecibo.addEventListener("click", () => modalRecibo.style.display = "none");
-
-btnGuardarRecibo.addEventListener("click", async () => {
+if (btnGuardarRecibo) btnGuardarRecibo.addEventListener("click", async () => {
   const cliente = document.getElementById("recibo-cliente").value.trim();
   const monto = parseFloat(document.getElementById("recibo-monto").value);
   const concepto = document.getElementById("recibo-concepto").value.trim();
@@ -433,150 +553,229 @@ btnGuardarRecibo.addEventListener("click", async () => {
   }
 
   const recibo = {
-    fecha: new Date().toLocaleString("es-DO"),
+    fecha: new Date().toISOString(),
     cliente,
     monto,
-    concepto
+    concepto,
+    fechaLocal: new Date().toLocaleString("es-DO")
   };
 
-  await addRecibo(recibo);
+  // Llama a la nueva función addRecibo de Firestore
+  await addRecibo(recibo); 
   modalRecibo.style.display = "none";
-  alert("✅ Recibo guardado correctamente");
-  await cargarHistorial(); // actualizar historial visible
+  mostrarMensajeVisual("✅ Recibo guardado correctamente", "success");
+  await cargarHistorial();
 });
 
 // ================================
-// Historial (facturas + recibos) — render estilizado
+// Historial (facturas + recibos) — render estilizado (Mismo código, sin cambios lógicos)
+// ================================
+// ================================
+// Cargar historial de facturas y recibos (optimizado)
 // ================================
 async function cargarHistorial() {
   listaFacturasContainer.innerHTML = "";
   listaRecibosContainer.innerHTML = "";
 
-  const facturas = await getAllFacturas();
+  // Ahora llama a la versión de Firestore
+  const facturas = await getAllFacturas(); 
   const recibos = await getAllRecibos();
 
-  // Encabezados
-  listaFacturasContainer.innerHTML = `<h3>📜 Facturas</h3>`;
-  listaRecibosContainer.innerHTML = `<h3>💵 Recibos de Caja</h3>`;
+  // ======== Crear filtro de fechas ========
+  const filtroDiv = document.createElement("div");
+  filtroDiv.classList.add("filtro-fecha");
+  filtroDiv.innerHTML = `
+    <div class="filtro-fecha-inner">
+      <label>Desde: <input type="text" id="fecha-desde" placeholder="Selecciona fecha"></label>
+      <label>Hasta: <input type="text" id="fecha-hasta" placeholder="Selecciona fecha"></label>
+      <button id="btn-filtrar-fecha">Filtrar</button>
+      <button id="btn-ver-todo">Ver todo</button>
+    </div>
+  `;
+  listaFacturasContainer.appendChild(filtroDiv);
 
-  if (!facturas.length) {
-    listaFacturasContainer.innerHTML += `<p>No hay facturas registradas.</p>`;
-  } else {
-    facturas.sort((a,b) => (a.numeroFactura < b.numeroFactura ? 1 : -1)); // recientes arriba
-    facturas.forEach(f => {
-      const div = document.createElement("div");
-      div.classList.add("item-historial");
-      const totalFormatted = Number(f.total).toFixed(2);
-      div.innerHTML = `
-        <div style="flex:1">
-          <p><strong>${f.numeroFactura}</strong> <span style="color:#666">- ${f.fechaFactura}</span></p>
-          <p style="margin-top:6px"><strong>Cliente:</strong> ${f.cliente || "Consumidor Final"} • <strong>Método:</strong> ${f.metodoPago || "-"}</p>
-          <p style="margin-top:6px"><strong>Total:</strong> RD$ ${totalFormatted}</p>
-        </div>
-        <div class="acciones-historial">
-          <button class="btn-ver">Ver</button>
-          <button class="btn-recibo">Recibo</button>
-        </div>
-      `;
+  // ===== Inicializar Flatpickr sobre los inputs del filtro =====
+  const inputDesde = filtroDiv.querySelector("#fecha-desde");
+  const inputHasta = filtroDiv.querySelector("#fecha-hasta");
+  flatpickr(inputDesde, { dateFormat: "Y-m-d", allowInput: true });
+  flatpickr(inputHasta, { dateFormat: "Y-m-d", allowInput: true });
 
-      // listeners
-      div.querySelector(".btn-ver").addEventListener("click", () => imprimirFactura(f));
-      div.querySelector(".btn-recibo").addEventListener("click", () => imprimirRecibo(f));
+  // ===== Estilos internos (responsivo) =====
+  const style = document.createElement("style");
+  style.textContent = `
+    .filtro-fecha-inner { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center; }
+    .filtro-fecha-inner label { display:flex; flex-direction:column; font-size:14px; }
+    .filtro-fecha-inner input { padding:8px; border-radius:6px; border:1px solid #ccc; }
+    .filtro-fecha-inner button { padding:6px 12px; border:none; border-radius:6px; background:#3498db; color:#fff; cursor:pointer; transition:0.2s; }
+    .filtro-fecha-inner button:hover { background:#2980b9; }
+    @media (max-width:600px) { .filtro-fecha-inner { flex-direction:column; align-items:flex-start; } }
+  `;
+  document.head.appendChild(style);
 
-      listaFacturasContainer.appendChild(div);
+  // ===== Mensaje inicial =====
+  const mensajeInicial = document.createElement("p");
+  mensajeInicial.textContent = "Seleccione una fecha o rango para ver facturas.";
+  listaFacturasContainer.appendChild(mensajeInicial);
+  listaRecibosContainer.innerHTML = "";
+
+  // ===== Función de filtrado =====
+  function filtrarYMostrar() {
+    const desdeVal = inputDesde.value;
+    const hastaVal = inputHasta.value;
+
+    // Si no hay ninguna fecha seleccionada, mostrar solo mensaje inicial
+    if (!desdeVal && !hastaVal) {
+      listaFacturasContainer.innerHTML = "";
+      listaFacturasContainer.appendChild(filtroDiv);
+      listaFacturasContainer.appendChild(mensajeInicial);
+      listaRecibosContainer.innerHTML = "";
+      return;
+    }
+
+    // Usamos las fechas ISO para la comparación
+    const desde = desdeVal ? new Date(desdeVal + "T00:00:00.000Z") : null;
+    const hasta = hastaVal ? new Date(hastaVal + "T23:59:59.999Z") : null;
+
+    // ===== FILTRAR FACTURAS =====
+    const filtradasFacturas = facturas.filter(f => {
+      // Usar la fecha ISO para la comparación
+      const fecha = new Date(f.fechaFactura); 
+      return (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
     });
+
+    // ===== FILTRAR RECIBOS =====
+    const filtradosRecibos = recibos.filter(r => {
+      // Usar la fecha ISO para la comparación
+      const fecha = new Date(r.fecha); 
+      return (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+    });
+
+    mostrarFacturasFiltradas(filtradasFacturas);
+    mostrarRecibosFiltrados(filtradosRecibos);
   }
 
-  if (!recibos.length) {
-    listaRecibosContainer.innerHTML += `<p>No hay recibos registrados.</p>`;
-  } else {
-    // orden descendente por id o fecha
-    recibos.sort((a,b) => (b.id || 0) - (a.id || 0));
-    recibos.forEach(r => {
-      const div = document.createElement("div");
-      div.classList.add("item-historial");
-      div.innerHTML = `
-        <div style="flex:1">
-          <p><strong>Cliente:</strong> ${r.cliente} <span style="color:#666">- ${r.fecha}</span></p>
-          <p style="margin-top:6px"><strong>Monto:</strong> RD$ ${Number(r.monto).toFixed(2)}</p>
-          ${r.concepto ? `<p style="margin-top:6px"><strong>Concepto:</strong> ${r.concepto}</p>` : ""}
-        </div>
-        <div class="acciones-historial">
-          <button class="btn-ver">Ver</button>
-        </div>
-      `;
+  // ===== Botones de filtrado =====
+  const btnFiltrar = filtroDiv.querySelector("#btn-filtrar-fecha");
+  const btnVerTodo = filtroDiv.querySelector("#btn-ver-todo");
 
-      div.querySelector(".btn-ver").addEventListener("click", () => imprimirRecibo(r));
-      listaRecibosContainer.appendChild(div);
-    });
-  }
+  btnFiltrar.addEventListener("click", filtrarYMostrar);
+  btnVerTodo.addEventListener("click", () => {
+    mostrarFacturasFiltradas(facturas);
+    mostrarRecibosFiltrados(recibos);
+  });
 }
 
-// Cerrar / Abrir historial
-btnHistorial.addEventListener("click", async () => {
+
+// ahora sí inicializar flatpickr
+flatpickr("#fecha-desde", { dateFormat: "Y-m-d", allowInput: true });
+flatpickr("#fecha-hasta", { dateFormat: "Y-m-d", allowInput: true });
+
+
+// Función para mostrar recibos filtrados (Mismo código, sin cambios)
+function mostrarRecibosFiltrados(recibos) {
+  listaRecibosContainer.innerHTML = "";
+  if (!recibos.length) {
+    listaRecibosContainer.innerHTML = `<p>No hay recibos registrados.</p>`;
+    return;
+  }
+
+  // Ahora se usa el campo 'fecha' de Firestore para ordenar por la fecha real
+  recibos.sort((a,b) => (new Date(b.fecha)).getTime() - (new Date(a.fecha)).getTime());
+
+  recibos.forEach(r => {
+    const div = document.createElement("div");
+    div.classList.add("item-historial");
+    div.innerHTML = `
+      <div style="flex:1">
+        <p><strong>Cliente:</strong> ${r.cliente} <span style="color:#666">- ${r.fechaLocal || r.fecha}</span></p>
+        <p style="margin-top:6px"><strong>Monto:</strong> RD$ ${Number(r.monto).toFixed(2)}</p>
+        ${r.concepto ? `<p style="margin-top:6px"><strong>Concepto:</strong> ${r.concepto}</p>` : ""}
+      </div>
+      <div class="acciones-historial">
+        <button class="btn-ver">Ver</button>
+      </div>
+    `;
+    div.querySelector(".btn-ver").addEventListener("click", () => imprimirRecibo(r));
+    listaRecibosContainer.appendChild(div);
+  });
+}
+
+
+// Función auxiliar para mostrar facturas filtradas (Mismo código, sin cambios)
+function mostrarFacturasFiltradas(facturas) {
+  const filtroDiv = listaFacturasContainer.querySelector("div");
+  listaFacturasContainer.innerHTML = "";
+  if (filtroDiv) listaFacturasContainer.appendChild(filtroDiv);
+
+  if (!facturas.length) {
+    listaFacturasContainer.innerHTML += `<p>No hay facturas para esas fechas.</p>`;
+    return;
+  }
+
+  // Ahora se usa el campo 'fechaFactura' de Firestore para ordenar por la fecha real
+  facturas.sort((a,b) => (new Date(b.fechaFactura)).getTime() - (new Date(a.fechaFactura)).getTime());
+
+  facturas.forEach(f => {
+    const div = document.createElement("div");
+    div.classList.add("item-historial");
+    const totalFormatted = Number(f.total).toFixed(2);
+    div.innerHTML = `
+      <div style="flex:1">
+        <p><strong>${f.numeroFactura}</strong> <span style="color:#666">- ${f.fechaFacturaLocal || f.fechaFactura}</span></p>
+        <p style="margin-top:6px"><strong>Cliente:</strong> ${f.cliente || "Consumidor Final"} • <strong>Método:</strong> ${f.metodoPago || "-"}</p>
+        <p style="margin-top:6px"><strong>Total:</strong> RD$ ${totalFormatted}</p>
+      </div>
+      <div class="acciones-historial">
+        <button class="btn-ver">Ver</button>
+        <button class="btn-recibo">Recibo</button>
+      </div>
+    `;
+    div.querySelector(".btn-ver").addEventListener("click", () => imprimirFacturaHTML(f));
+    div.querySelector(".btn-recibo").addEventListener("click", () => imprimirRecibo(f));
+    listaFacturasContainer.appendChild(div);
+  });
+}
+
+
+
+// abrir / cerrar historial (Mismo código, sin cambios)
+if (btnHistorial) btnHistorial.addEventListener("click", async () => {
   await cargarHistorial();
   modalHistorial.style.display = "flex";
 });
-btnCerrarHistorial.addEventListener("click", () => {
-  modalHistorial.style.display = "none";
-});
+if (btnCerrarHistorial) btnCerrarHistorial.addEventListener("click", () => modalHistorial.style.display = "none");
 
 // ================================
-// Imprimir Factura (obj factura)
+// Imprimir Factura / Recibo (HTML fallback) (Mismo código, sin cambios)
 // ================================
-function imprimirFactura(f) {
+function imprimirFacturaHTML(f) {
   const printWindow = window.open("", "_blank");
   printWindow.document.write(`
-    <html>
-    <head>
-      <title>${f.numeroFactura}</title>
-      <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .factura { width: 320px; border: 3px solid #009688; padding: 15px; box-sizing: border-box; margin:auto; }
-        .factura h1 { color: #009688; text-align:center; margin:0 0 8px 0; }
-        .factura p { margin: 4px 0; font-size: 0.95rem; }
-        .producto-cuadro { width:100%; border-top:1px dashed #ccc; padding:6px 0; }
-        .total { text-align:right; font-weight:bold; margin-top:8px; }
-      </style>
-    </head>
-    <body>
-      <div class="factura">
-        <h1>Heladería Rosary</h1>
-        <p>Tel: 809-XXX-XXXX</p>
-        <p>Dirección: Santo Domingo, RD</p>
-        <hr>
-        <p><strong>No. Factura:</strong> ${f.numeroFactura}</p>
-        <p><strong>Fecha:</strong> ${f.fechaFactura}</p>
-        <p><strong>Cliente:</strong> ${f.cliente || "Consumidor Final"}</p>
-        <p><strong>Método:</strong> ${f.metodoPago || "-"}</p>
-        <hr>
-        ${f.productos.map(p => `
-          <div class="producto-cuadro">
-            <p><strong>${p.nombre || ''}</strong></p>
-            <p>${p.descripcion || ''}</p>
-            <p>RD$ ${Number(p.precio).toFixed(2)}</p>
-          </div>
-        `).join("")}
-        <div class="total">Total: RD$ ${Number(f.total).toFixed(2)}</div>
-        <hr>
-        <p style="text-align:center; font-style:italic;">¡Muchas gracias por su compra!</p>
-      </div>
-    </body>
-    </html>
+    <html><head><title>${f.numeroFactura}</title>
+      <style>body{font-family:Arial;padding:12px} .producto{border-top:1px dashed #ccc;padding:6px 0}</style>
+    </head><body>
+      <h2 style="text-align:center">Heladería Rosary</h2>
+      <p><strong>No. Factura:</strong> ${f.numeroFactura}</p>
+      <p><strong>Fecha:</strong> ${f.fechaFacturaLocal || f.fechaFactura}</p>
+      <p><strong>Cliente:</strong> ${f.cliente || 'Consumidor Final'}</p>
+      <p><strong>Método:</strong> ${f.metodoPago || '-'}</p>
+      <hr>
+      ${f.productos.map(p=>`<div class="producto"><p><strong>${p.nombre || ''}</strong></p><p>RD$ ${Number(p.precio).toFixed(2)}</p></div>`).join('')}
+      <hr>
+      <p style="text-align:right"><strong>Total: RD$ ${Number(f.total).toFixed(2)}</strong></p>
+      <p style="text-align:center;font-style:italic">¡Gracias por su compra!</p>
+    </body></html>
   `);
-  printWindow.print();
-  printWindow.close();
+  // dar tiempo para cargar
+  printWindow.onload = () => { printWindow.print(); printWindow.close(); };
 }
 
-// ================================
-// Imprimir Recibo (detecta factura o recibo)
-// ================================
+// imprimir recibo (detecta factura o recibo) (Mismo código, sin cambios)
 function imprimirRecibo(obj) {
-  // Si el objeto tiene numeroFactura => es una factura (crear recibo resumido)
   let isFactura = Boolean(obj && obj.numeroFactura);
   let titulo = isFactura ? `Recibo - ${obj.numeroFactura}` : `Recibo de Caja`;
   let cliente = isFactura ? (obj.cliente || "Consumidor Final") : (obj.cliente || "");
-  let fecha = isFactura ? (obj.fechaFactura || "") : (obj.fecha || "");
+  let fecha = isFactura ? (obj.fechaFacturaLocal || obj.fechaFactura || "") : (obj.fechaLocal || obj.fecha || "");
   let monto = isFactura ? Number(obj.total).toFixed(2) : Number(obj.monto).toFixed(2);
   let metodo = isFactura ? (obj.metodoPago || "") : "";
   let concepto = isFactura ? `Pago factura ${obj.numeroFactura}` : (obj.concepto || "");
@@ -586,18 +785,11 @@ function imprimirRecibo(obj) {
     <html>
     <head>
       <title>${titulo}</title>
-      <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .recibo { width: 320px; border: 2px solid #000; padding: 12px; margin:auto; box-sizing:border-box; }
-        h2 { text-align:center; margin:0 0 8px 0; }
-        p { margin: 6px 0; font-size: 14px; }
-        .firmas { margin-top: 16px; }
-        .firmas div { margin-bottom: 12px; }
-      </style>
+      <style>body{font-family:Arial;padding:12px}.recibo{border:1px solid #000;padding:10px}</style>
     </head>
     <body>
       <div class="recibo">
-        <h2>Recibo de Caja</h2>
+        <h2 style="text-align:center">Recibo de Caja</h2>
         ${isFactura ? `<p><strong>No. Factura:</strong> ${obj.numeroFactura}</p>` : ""}
         <p><strong>Fecha:</strong> ${fecha}</p>
         <p><strong>Cliente:</strong> ${cliente}</p>
@@ -605,40 +797,68 @@ function imprimirRecibo(obj) {
         ${concepto ? `<p><strong>Concepto:</strong> ${concepto}</p>` : ""}
         <hr>
         <p><strong>Monto recibido:</strong> RD$ ${monto}</p>
-        <div class="firmas">
-          <div>Firma Cajero: ____________________</div>
-          <div>Firma Cliente: ___________________</div>
-        </div>
+        <div style="margin-top:12px">Firma Cajero: ____________</div>
+        <div style="margin-top:6px">Firma Cliente: ____________</div>
       </div>
     </body>
     </html>
   `);
-  printWindow.print();
-  printWindow.close();
+  printWindow.onload = () => { printWindow.print(); printWindow.close(); };
 }
 
 // ================================
-// Buscador productos
+// Generar ticket estilo supermercado (jsPDF) (Mismo código, sin cambios)
 // ================================
-buscador.addEventListener("input", () => {
-  const texto = buscador.value.toLowerCase();
-  const filtrados = productos.filter(p => (p.nombre || "").toLowerCase().includes(texto));
-  mostrarProductos(filtrados);
-});
-
-// ================================
-// Inicializar DB y cargar datos al inicio
-// ================================
-openDB()
-  .then(async () => {
-    await cargarProductos();
-    // cargarHistorial no necesariamente al inicio pero lo dejamos listo
-    // await cargarHistorial();
-  })
-  .catch(err => {
-    console.error("Error abriendo IndexedDB:", err);
-    alert("Error al inicializar la base de datos. Revisa la consola.");
+function generarFacturaTicket(f) {
+  // Asegurarse de que jsPDF esté cargado
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    throw new Error("jsPDF no está disponible. Incluye la librería antes de script.js");
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({
+    unit: "mm",
+    format: [80, 200]
   });
 
-// Nota: los estilos del historial y botones deben agregarse en style.css
-// (usa .item-historial, .acciones-historial, .btn-ver, .btn-recibo, #btn-cerrar-historial, etc.)
+  let y = 8;
+  doc.setFont("courier", "bold");
+  doc.setFontSize(12);
+  doc.text("Heladería Rosary", 40, y, { align: "center" });
+  y += 5;
+  doc.setFont("courier", "normal");
+  doc.setFontSize(8);
+  doc.text(`Factura: ${f.numeroFactura}`, 6, y); y += 4;
+  doc.text(`Fecha: ${f.fechaFacturaLocal || f.fechaFactura}`, 6, y); y += 4;
+  doc.text(`Cliente: ${f.cliente}`, 6, y); y += 4;
+  doc.text(`Método: ${f.metodoPago}`, 6, y); y += 4;
+  doc.line(6, y, 74, y); y += 5;
+
+  // encabezado tabla
+  doc.text("Producto", 6, y);
+  doc.text("Precio", 66, y, { align: "right" });
+  y += 4;
+  doc.line(6, y, 74, y); y += 5;
+
+  f.productos.forEach(p => {
+    const name = (p.nombre || "Producto").substring(0, 28);
+    doc.text(name, 6, y);
+    doc.text(`RD$${Number(p.precio).toFixed(2)}`, 66, y, { align: "right" });
+    y += 5;
+    // si y se acerca al final, agregar página (por si hay muchos productos)
+    if (y > 195) {
+      doc.addPage([80, 200]);
+      y = 10;
+    }
+  });
+
+  doc.line(6, y, 74, y); y += 6;
+  doc.setFont("courier", "bold");
+  doc.text("TOTAL", 6, y);
+  doc.text(`RD$${Number(f.total).toFixed(2)}`, 66, y, { align: "right" });
+  y += 6;
+  doc.setFont("courier", "normal");
+  doc.setFontSize(8);
+  doc.text("¡Gracias por su compra!", 40, y, { align: "center" });
+  doc.autoPrint();
+  window.open(doc.output('bloburl'), '_blank');
+}
