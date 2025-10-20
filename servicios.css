@@ -152,3 +152,29 @@ main { padding: 15px; }
   header h1 { font-size:1rem; }
   .formulario h2, .lista-clientes h2 { font-size:1.1rem; }
 }
+
+
+
+/* --- Botón Registrar Pago --- */
+.acciones .btn-pago {
+    /* Basado en la paleta de colores de tu sistema (verde de éxito) */
+    background: #009688; /* Color principal de tu header */
+    color: white;
+    padding: 8px 12px;
+    margin: 2px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.acciones .btn-pago:hover {
+    background: #00796b; /* Un tono más oscuro */
+    transform: scale(1.05);
+}
+
+.acciones .btn-pago:active {
+    transform: scale(0.95);
+}

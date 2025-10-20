@@ -64,6 +64,34 @@
   </div>
 </div>
 
+<div id="modal-pago" class="modal">
+  <div class="modal-content">
+    <h3>✅ Registrar Pago de <span id="pago-cliente-nombre">Cliente</span></h3>
+    
+    <label for="pago-monto">Monto Pagado</label>
+    <input type="number" id="pago-monto" placeholder="Monto">
+    
+    <label for="pago-fecha">Fecha del Pago</label>
+    <input type="date" id="pago-fecha">
+    
+    <label for="pago-metodo">Método de Pago</label>
+    <select id="pago-metodo">
+      <option value="Efectivo">💵 Efectivo</option>
+      <option value="Transferencia">🏦 Transferencia</option>
+      <option value="Tarjeta">💳 Tarjeta (POS)</option>
+    </select>
+    
+    <div class="modal-btns">
+      <button id="btn-registrar-pago">✔️ Confirmar Pago</button>
+      <button id="btn-cancelar-pago">❌ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="servicios.js"></script>
+</body>
+</html>
+
 <script type="module" src="servicios.js"></script>
 </body>
 </html>
