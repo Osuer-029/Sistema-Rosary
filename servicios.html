@@ -36,9 +36,15 @@
 
   <section class="lista-clientes">
     <h2>Clientes Registrados</h2>
+    <div class="buscador-container">
+        <input type="text" id="buscador-input" placeholder="Buscar por nombre o servicio...">
+        <button id="btn-buscar">🔎 Buscar</button>
+    </div>
     <div id="clientes-lista"></div>
-  </section>
-</main>
+</section>
+
+
+
 
 <!-- Modal de edición -->
 <div id="modal-editar" class="modal">
@@ -73,6 +79,9 @@
     
     <label for="pago-fecha">Fecha del Pago</label>
     <input type="date" id="pago-fecha">
+
+<label for="pago-meses">Meses Pagados</label>
+<input type="number" id="pago-meses" value="1" min="1">
     
     <label for="pago-metodo">Método de Pago</label>
     <select id="pago-metodo">
@@ -92,6 +101,3 @@
 </body>
 </html>
 
-<script type="module" src="servicios.js"></script>
-</body>
-</html>
