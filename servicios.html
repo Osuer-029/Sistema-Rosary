@@ -10,6 +10,8 @@
 <header>
   <h1>📅 Servicios</h1>
   <button id="btn-volver">🏠 Volver</button>
+  <!-- Nuevo botón para abrir el estado de cuenta -->
+  <button id="btn-estado-cuenta">💳 Estado de Cuenta</button>
 </header>
 
 <main>
@@ -18,8 +20,8 @@
     <input type="text" id="nombre" placeholder="Nombre del cliente">
     <input type="email" id="correo" placeholder="Correo electrónico">
     <input type="tel" id="telefono" placeholder="Teléfono">
-    <input type="date" id="fechaEntrada" placeholder="Fecha de ingreso">
-    <input type="number" id="monto" placeholder="Monto mensual">
+    <input type="date" id="fechaEntrada" placeholder="Fecha de ingreso (Próx. Corte)">
+    <input type="number" id="monto" placeholder="Monto mensual (ej: 150.00)">
 
     <label for="servicio">Servicio</label>
     <select id="servicio">
@@ -41,20 +43,18 @@
         <button id="btn-buscar">🔎 Buscar</button>
     </div>
     <div id="clientes-lista"></div>
-</section>
+  </section>
+</main>
 
-
-
-
-<!-- Modal de edición -->
+<!-- Modales existentes -->
 <div id="modal-editar" class="modal">
   <div class="modal-content">
     <h3>✏️ Editar Cliente</h3>
-    <input type="text" id="editar-nombre">
-    <input type="email" id="editar-correo">
-    <input type="tel" id="editar-telefono">
-    <input type="date" id="editar-fechaEntrada">
-    <input type="number" id="editar-monto">
+    <input type="text" id="editar-nombre" placeholder="Nombre">
+    <input type="email" id="editar-correo" placeholder="Correo electrónico">
+    <input type="tel" id="editar-telefono" placeholder="Teléfono">
+    <input type="date" id="editar-fechaEntrada" placeholder="Fecha de ingreso (Próx. Corte)">
+    <input type="number" id="editar-monto" placeholder="Monto mensual">
     <select id="editar-servicio">
       <option value="Netflix">🎬 Netflix</option>
       <option value="Spotify">🎵 Spotify</option>
@@ -71,33 +71,66 @@
 </div>
 
 <div id="modal-pago" class="modal">
-  <div class="modal-content">
-    <h3>✅ Registrar Pago de <span id="pago-cliente-nombre">Cliente</span></h3>
+  <div class="modal-content">
+    <h3>✅ Registrar Pago de <span id="pago-cliente-nombre">Cliente</span></h3>
     
-    <label for="pago-monto">Monto Pagado</label>
-    <input type="number" id="pago-monto" placeholder="Monto">
+    <label for="pago-monto">Monto Pagado</label>
+    <input type="number" id="pago-monto" placeholder="Monto">
     
-    <label for="pago-fecha">Fecha del Pago</label>
-    <input type="date" id="pago-fecha">
+    <label for="pago-fecha">Fecha del Pago</label>
+    <input type="date" id="pago-fecha">
 
-<label for="pago-meses">Meses Pagados</label>
-<input type="number" id="pago-meses" value="1" min="1">
+    <label for="pago-meses">Meses Pagados</label>
+    <input type="number" id="pago-meses" value="1" min="1">
     
-    <label for="pago-metodo">Método de Pago</label>
-    <select id="pago-metodo">
-      <option value="Efectivo">💵 Efectivo</option>
-      <option value="Transferencia">🏦 Transferencia</option>
-      <option value="Tarjeta">💳 Tarjeta (POS)</option>
-    </select>
+    <label for="pago-metodo">Método de Pago</label>
+    <select id="pago-metodo">
+      <option value="Efectivo">💵 Efectivo</option>
+      <option value="Transferencia">🏦 Transferencia</option>
+      <option value="Tarjeta">💳 Tarjeta (POS)</option>
+    </select>
     
-    <div class="modal-btns">
-      <button id="btn-registrar-pago">✔️ Confirmar Pago</button>
-      <button id="btn-cancelar-pago">❌ Cancelar</button>
-    </div>
-  </div>
+    <div class="modal-btns">
+      <button id="btn-registrar-pago">✔️ Confirmar Pago</button>
+      <button id="btn-cancelar-pago">❌ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-pagos-historial" class="modal">
+  <div class="modal-content">
+    <h3 id="historial-cliente-nombre">Historial de Pagos de Cliente</h3>
+    <p style="font-size: 0.9em; color: #e74c3c;">
+        * Usa "Eliminar y Revertir" solo si un pago se registró por error.
+    </p>
+    <div id="historial-lista"></div>
+    <div class="modal-btns">
+      <button id="btn-cerrar-historial">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- NUEVO MODAL: Estado de Cuenta con rango de fechas -->
+<div id="modal-estado-cuenta" class="modal">
+  <div class="modal-content">
+    <h3>💳 Estado de Cuenta</h3>
+
+    <div style="margin-bottom: 1rem;">
+      <label for="fecha-desde">Desde:</label>
+      <input type="date" id="fecha-desde">
+      <label for="fecha-hasta">Hasta:</label>
+      <input type="date" id="fecha-hasta">
+      <button id="btn-filtrar-fechas">Filtrar</button>
+    </div>
+
+    <div id="estado-cuenta-lista" style="max-height: 60vh; overflow-y: auto;"></div>
+
+    <div class="modal-btns">
+      <button id="btn-cerrar-estado-cuenta">Cerrar</button>
+    </div>
+  </div>
 </div>
 
 <script type="module" src="servicios.js"></script>
 </body>
 </html>
-

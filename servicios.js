@@ -22,10 +22,9 @@ import {
   Timestamp 
 } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore.js";
 
-
-// Tu configuración de Firebase (DEBES REVISAR LA API KEY)
+// Tu configuración de Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyDi-yeyvgHQg0n2xAEeH_D-n4sx0OD3SSc",
+  apiKey: "AIzaSyDi-yeyvgHQg0n2xAEh_D-n4sx0OD3SSc",
   authDomain: "sistema-anthony-7cea5.firebaseapp.com",
   projectId: "sistema-anthony-7cea5",
   storageBucket: "sistema-anthony-7cea5.firebasestorage.app",
@@ -40,7 +39,6 @@ const analytics = getAnalytics(app);
 const db = getFirestore(app); 
 const CLIENTES_COLLECTION = "servicios_clientes";
 
-
 // ===============================================
 // 2. REFERENCIAS DOM Y ESTADO LOCAL
 // ===============================================
@@ -54,7 +52,7 @@ const btnAgregar = document.getElementById("btn-agregar");
 const lista = document.getElementById("clientes-lista");
 const btnVolver = document.getElementById("btn-volver");
 
-// NUEVAS REFERENCIAS PARA EL BUSCADOR
+// Buscador
 const buscadorInput = document.getElementById("buscador-input");
 const btnBuscar = document.getElementById("btn-buscar");
 
@@ -79,22 +77,35 @@ const pagoMeses = document.getElementById("pago-meses");
 const btnRegistrarPago = document.getElementById("btn-registrar-pago");
 const btnCancelarPago = document.getElementById("btn-cancelar-pago");
 
+// Modal Historial de Pagos
+const modalPagosHistorial = document.getElementById("modal-pagos-historial");
+const historialClienteNombre = document.getElementById("historial-cliente-nombre");
+const historialLista = document.getElementById("historial-lista");
+const btnCerrarHistorial = document.getElementById("btn-cerrar-historial");
+
+// Modal Estado de Cuenta
+const modalEstadoCuenta = document.getElementById("modal-estado-cuenta");
+const btnEstadoCuenta = document.getElementById("btn-estado-cuenta");
+const btnCerrarEstadoCuenta = document.getElementById("btn-cerrar-estado-cuenta");
+const fechaDesde = document.getElementById("fecha-desde");
+const fechaHasta = document.getElementById("fecha-hasta");
+const btnFiltrarFechas = document.getElementById("btn-filtrar-fechas");
+const estadoCuentaLista = document.getElementById("estado-cuenta-lista");
+
 let clientes = [];
 let clienteEditando = null;
 let clientePagando = null;
-
+let clienteHistorial = null;
 
 // ===============================================
 // 3. FUNCIONES DE BASE DE DATOS Y TRANSACCIONES
 // ===============================================
-
 async function cargarClientes() {
   try {
     const q = query(collection(db, CLIENTES_COLLECTION), orderBy("nombre", "asc"));
     const snapshot = await getDocs(q);
     clientes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    // Llama a render sin argumentos para mostrar todos los clientes inicialmente
-    render(); 
+    render();
   } catch (e) {
     console.error("Error al cargar clientes: ", e);
   }
@@ -142,28 +153,41 @@ async function eliminarCliente(id) {
   }
 }
 
+// ===============================================
+// 4. PAGOS
+// ===============================================
+async function getPagosCliente(clienteId) {
+  try {
+      const pagosCol = collection(db, CLIENTES_COLLECTION, clienteId, 'pagos');
+      const q = query(pagosCol, orderBy('fechaPago', 'desc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        fechaPago: doc.data().fechaPago.toDate()
+      }));
+  } catch (e) {
+      console.error("Error al obtener pagos: ", e);
+      return [];
+  }
+}
+
 async function registrarPago(clienteId, datosPago) {
   const clienteRef = doc(db, CLIENTES_COLLECTION, clienteId);
-  
-  let nuevaFechaEntrada = null; 
+  let nuevaFechaEntrada = null;
 
   try {
     await runTransaction(db, async (transaction) => {
       const clienteDoc = await transaction.get(clienteRef);
-      if (!clienteDoc.exists()) {
-        throw "Documento del cliente no existe!";
-      }
+      if (!clienteDoc.exists()) throw "Cliente no existe!";
 
-      const fechaActualString = clienteDoc.data().fechaEntrada;
-      const fechaActual = new Date(fechaActualString.replace(/-/g, '/'));
-      
+      const fechaActual = new Date(clienteDoc.data().fechaEntrada.replace(/-/g, '/'));
       fechaActual.setMonth(fechaActual.getMonth() + datosPago.meses);
-      
       nuevaFechaEntrada = fechaActual.toISOString().split('T')[0];
 
       transaction.update(clienteRef, {
         fechaEntrada: nuevaFechaEntrada,
-        ultima_actualizacion: serverTimestamp() 
+        ultima_actualizacion: serverTimestamp()
       });
 
       const pagosCollectionRef = collection(db, CLIENTES_COLLECTION, clienteId, 'pagos');
@@ -171,131 +195,95 @@ async function registrarPago(clienteId, datosPago) {
         monto: datosPago.monto,
         metodo: datosPago.metodo,
         mesesPagados: datosPago.meses,
-        fechaPago: Timestamp.fromDate(new Date(datosPago.fecha.replace(/-/g, '/'))), 
+        fechaPago: Timestamp.fromDate(new Date(datosPago.fecha.replace(/-/g, '/'))),
         fechaCorteNueva: nuevaFechaEntrada,
         fechaRegistro: serverTimestamp()
       });
     });
 
-    const fechaFormateada = new Date(Date.parse(nuevaFechaEntrada)).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-    alert(`Pago de $${datosPago.monto} por ${datosPago.meses} mes(es) registrado con éxito. Próximo corte: ${fechaFormateada}.`);
-    
+    alert(`Pago registrado con éxito. Próximo corte: ${nuevaFechaEntrada}`);
     await cargarClientes();
     modalPago.style.display = "none";
     clientePagando = null;
 
   } catch (e) {
-    console.error("Error en la transacción de pago: ", e);
-    alert("Error al registrar el pago. Revisa la consola para más detalles.");
+    console.error("Error en transacción de pago: ", e);
+    alert("Error al registrar el pago. Revisa la consola.");
   }
 }
 
 // ===============================================
-// 4. LÓGICA DE LA APLICACIÓN Y RENDER
+// 5. RENDER Y UTILIDADES
 // ===============================================
-
-
 function limpiar() {
   nombre.value = correo.value = telefono.value = fechaEntrada.value = monto.value = "";
   servicio.value = "Netflix";
 }
 
 function calcularDiasAbsolutos(fechaEntrada) {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    
-    let fechaCorteAbsoluta = new Date(fechaEntrada.replace(/-/g, '/'));
-    fechaCorteAbsoluta.setHours(0, 0, 0, 0);
-
-    const diffTime = fechaCorteAbsoluta.getTime() - hoy.getTime();
-    const dias = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    return dias;
-}
-
-function calcularDiasProgramados(fechaEntrada) {
   const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0); 
-  
-  const diaDeCorte = new Date(fechaEntrada.replace(/-/g, '/')).getDate();
-  
-  let proximoCorte = new Date(hoy.getFullYear(), hoy.getMonth(), diaDeCorte);
-  proximoCorte.setHours(0, 0, 0, 0); 
-
-  if (proximoCorte <= hoy) {
-      proximoCorte.setMonth(proximoCorte.getMonth() + 1);
-  }
-  
-  const diffTime = proximoCorte.getTime() - hoy.getTime();
-  const dias = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  return dias;
+  hoy.setHours(0,0,0,0);
+  const fechaCorte = new Date(fechaEntrada.replace(/-/g,'/'));
+  fechaCorte.setHours(0,0,0,0);
+  return Math.ceil((fechaCorte.getTime() - hoy.getTime()) / (1000*60*60*24));
 }
 
-/**
- * Función principal de renderizado.
- * @param {Array<Object>} [clientesFiltrados=clientes] - La lista de clientes a mostrar (toda o filtrada).
- */
 function render(clientesFiltrados = clientes) {
   lista.innerHTML = "";
-  
+
   if (clientesFiltrados.length === 0) {
-    lista.innerHTML = "<p style='text-align:center;'>No se encontraron clientes que coincidan con la búsqueda.</p>";
+    lista.innerHTML = "<p style='text-align:center;'>No se encontraron clientes.</p>";
     return;
   }
-  
-  clientesFiltrados.forEach(c => {
-    const diasFaltanAbsolutos = calcularDiasAbsolutos(c.fechaEntrada);
-    const diasFaltanProgramados = calcularDiasProgramados(c.fechaEntrada);
 
-    const alerta = diasFaltanAbsolutos <= 3 ? "alerta-roja" : (diasFaltanAbsolutos <= 7 ? "alerta-amarilla" : "");
-    const progreso = Math.max(0, Math.min(100, (30 - diasFaltanProgramados) / 30 * 100)); 
-    
+  clientesFiltrados.forEach(c => {
+    const diasFaltan = calcularDiasAbsolutos(c.fechaEntrada);
+    const alerta = diasFaltan <= 3 ? "alerta-roja" : (diasFaltan <= 7 ? "alerta-amarilla" : "");
+
     const fechaCorteDB = new Date(c.fechaEntrada.replace(/-/g, '/'));
-    const proximoCorteStr = fechaCorteDB.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-    
-    const mensajeDias = diasFaltanAbsolutos <= 0 ? "⚠️ Pago Vencido" : `⏰ Faltan ${diasFaltanAbsolutos} días`;
-    
+    const proximoCorteStr = fechaCorteDB.toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' });
+
     const div = document.createElement("div");
     div.className = "card";
-    
-    const telefonoLimpio = c.telefono ? c.telefono.replace(/\s/g, '') : '';
-    const correoLink = c.correo ? `<a href="mailto:${c.correo}" class="contacto-link" title="Enviar correo">📧</a>` : '';
-    const telefonoLink = c.telefono ? `<a href="tel:${telefonoLimpio}" class="contacto-link" title="Llamar">📞</a>` : '';
-    
+
     div.innerHTML = `
-      <h3>${c.nombre} (${c.servicio})</h3>
-      <div class="contacto-info">
-        <p>
-          ${correoLink} ${c.correo || "Sin correo"} | 
-          ${telefonoLink} ${c.telefono || "Sin teléfono"}
-        </p>
+      <div class="card-header">
+        <h3>${c.nombre}</h3>
+        <span>${c.servicio}</span>
       </div>
-      <p>🗓️ **Próximo Corte:** ${proximoCorteStr}</p>
-      <p>💰 **Monto:** $${Number(c.monto).toFixed(2)}</p>
+      <div class="contacto-info">
+        <p>📧 ${c.correo || "Sin correo"} | 📞 ${c.telefono || "Sin teléfono"}</p>
+      </div>
+      <div class="card-detalles">
+        <p>🗓️ Próximo Corte: <strong>${proximoCorteStr}</strong></p>
+        <p>💰 Monto: <strong>$${Number(c.monto).toFixed(2)}</strong></p>
+      </div>
       <div class="contador">
-        <span class="${alerta}">${mensajeDias}</span>
-        <div class="barra-progreso"><span style="width:${progreso}%" class="${alerta}"></span></div>
+        <span class="${alerta}">${diasFaltan <= 0 ? "⚠️ Pago Vencido" : `⏰ Faltan ${diasFaltan} días`}</span>
       </div>
       <div class="acciones">
+        <button class="btn-historial-pago" data-id="${c.id}">📄 Ver Pagos</button>
         <button class="btn-pago" data-id="${c.id}">✅ Registrar Pago</button>
         <button class="btn-editar" data-id="${c.id}">✏️ Editar</button>
         <button class="btn-eliminar" data-id="${c.id}">🗑️ Eliminar</button>
       </div>
     `;
-    
-    div.querySelector(".btn-pago").addEventListener("click", (e) => abrirModalPago(e.target.dataset.id));
-    div.querySelector(".btn-editar").addEventListener("click", (e) => abrirEditar(e.target.dataset.id));
-    div.querySelector(".btn-eliminar").addEventListener("click", (e) => eliminarCliente(e.target.dataset.id));
-    
+
+    div.querySelector(".btn-historial-pago").addEventListener("click",(e)=>abrirHistorialPagos(e.target.dataset.id));
+    div.querySelector(".btn-pago").addEventListener("click",(e)=>abrirModalPago(e.target.dataset.id));
+    div.querySelector(".btn-editar").addEventListener("click",(e)=>abrirEditar(e.target.dataset.id));
+    div.querySelector(".btn-eliminar").addEventListener("click",(e)=>eliminarCliente(e.target.dataset.id));
+
     lista.appendChild(div);
   });
 }
 
-function abrirEditar(id){
+// ===============================================
+// 6. MODALES Y FUNCIONES DE EDICIÓN
+// ===============================================
+function abrirEditar(id) {
   clienteEditando = clientes.find(c => c.id === id);
   if (!clienteEditando) return;
-  
   editarNombre.value = clienteEditando.nombre;
   editarCorreo.value = clienteEditando.correo;
   editarTelefono.value = clienteEditando.telefono;
@@ -306,112 +294,145 @@ function abrirEditar(id){
 }
 
 function abrirModalPago(id) {
-    clientePagando = clientes.find(c => c.id === id);
-    if (!clientePagando) return;
-
-    pagoClienteNombre.textContent = clientePagando.nombre;
-    pagoMonto.value = clientePagando.monto; 
-    pagoFecha.value = new Date().toISOString().split('T')[0];
-    pagoMetodo.value = 'Efectivo';
-    pagoMeses.value = '1';
-    modalPago.style.display = "flex";
+  clientePagando = clientes.find(c => c.id === id);
+  if (!clientePagando) return;
+  pagoClienteNombre.textContent = clientePagando.nombre;
+  pagoMonto.value = clientePagando.monto;
+  pagoFecha.value = new Date().toISOString().split('T')[0];
+  pagoMetodo.value = 'Efectivo';
+  pagoMeses.value = 1;
+  modalPago.style.display = "flex";
 }
 
-/**
- * Filtra la lista de clientes basándose en el texto del buscador.
- */
-function filtrarClientes() {
-    const termino = buscadorInput.value.toLowerCase().trim();
-    
-    if (termino === "") {
-        render(clientes);
-        return;
-    }
-    
-    const clientesFiltrados = clientes.filter(c => {
-        const nombre = c.nombre ? c.nombre.toLowerCase() : '';
-        const servicio = c.servicio ? c.servicio.toLowerCase() : '';
-        
-        // Comprueba si el término está en el nombre O en el servicio
-        return nombre.includes(termino) || servicio.includes(termino);
-    });
+async function abrirHistorialPagos(id) {
+  clienteHistorial = clientes.find(c => c.id === id);
+  if (!clienteHistorial) return;
 
-    render(clientesFiltrados);
-}
+  historialClienteNombre.textContent = `Historial de Pagos: ${clienteHistorial.nombre}`;
+  historialLista.innerHTML = "<p>Cargando...</p>";
 
-
-// ===============================================
-// 5. EVENT LISTENERS
-// ===============================================
-
-btnAgregar.addEventListener("click", () => {
-  if (!nombre.value || !fechaEntrada.value || !monto.value || !servicio.value) {
-    alert("Por favor completa los campos obligatorios.");
+  const pagos = await getPagosCliente(clienteHistorial.id);
+  if (pagos.length === 0) {
+    historialLista.innerHTML = "<p>No hay pagos registrados.</p>";
     return;
   }
-  
-  const nuevo = {
-    nombre: nombre.value.trim(),
-    correo: correo.value.trim(),
-    telefono: telefono.value.trim(),
+
+  historialLista.innerHTML = "";
+  pagos.forEach(p => {
+    const div = document.createElement("div");
+    const fechaPagoStr = new Date(p.fechaPago).toLocaleDateString('es-ES');
+    div.innerHTML = `
+      <p>💰 $${p.monto.toFixed(2)} - ${p.mesesPagados} mes(es) - ${fechaPagoStr} - ${p.metodo}</p>
+    `;
+    historialLista.appendChild(div);
+  });
+
+  modalPagosHistorial.style.display = "flex";
+}
+
+// ===============================================
+// 7. ESTADO DE CUENTA (Rango de Fechas)
+// ===============================================
+btnEstadoCuenta.addEventListener("click", () => {
+  modalEstadoCuenta.style.display = "flex";
+  estadoCuentaLista.innerHTML = "<p>Seleccione un rango de fechas y haga clic en filtrar.</p>";
+});
+
+btnCerrarEstadoCuenta.addEventListener("click", () => {
+  modalEstadoCuenta.style.display = "none";
+  fechaDesde.value = fechaHasta.value = "";
+});
+
+btnFiltrarFechas.addEventListener("click", async () => {
+  if (!fechaDesde.value || !fechaHasta.value) {
+    alert("Seleccione ambas fechas.");
+    return;
+  }
+  const desde = new Date(fechaDesde.value);
+  const hasta = new Date(fechaHasta.value);
+  if (hasta < desde) { alert("La fecha hasta debe ser mayor o igual a la fecha desde."); return; }
+
+  estadoCuentaLista.innerHTML = "<p>Cargando...</p>";
+
+  let html = "";
+  for (const c of clientes) {
+    const dias = calcularDiasAbsolutos(c.fechaEntrada);
+    const fechaCorte = new Date(c.fechaEntrada.replace(/-/g, '/'));
+
+    if (fechaCorte >= desde && fechaCorte <= hasta) {
+      html += `
+        <div class="card">
+          <h4>${c.nombre} (${c.servicio})</h4>
+          <p>💰 $${Number(c.monto).toFixed(2)}</p>
+          <p>🗓️ Próximo Corte: ${fechaCorte.toLocaleDateString('es-ES')}</p>
+          <p>${dias <= 0 ? "⚠️ Vencido" : `⏰ Faltan ${dias} día(s)`}</p>
+        </div>
+      `;
+    }
+  }
+
+  estadoCuentaLista.innerHTML = html || "<p>No hay clientes con pagos en este rango.</p>";
+});
+
+// ===============================================
+// 8. EVENTOS BOTONES Y BUSCADOR
+// ===============================================
+btnAgregar.addEventListener("click", () => {
+  if (!nombre.value || !monto.value || !fechaEntrada.value) { alert("Nombre, monto y fecha son obligatorios."); return; }
+  agregarCliente({
+    nombre: nombre.value,
+    correo: correo.value,
+    telefono: telefono.value,
     fechaEntrada: fechaEntrada.value,
     monto: parseFloat(monto.value),
-    servicio: servicio.value,
-  };
-  
-  agregarCliente(nuevo);
+    servicio: servicio.value
+  });
 });
 
 btnGuardarEdicion.addEventListener("click", () => {
-  if (!clienteEditando) return;
-
-  const datosActualizados = {
-    nombre: editarNombre.value.trim(),
-    correo: editarCorreo.value.trim(),
-    telefono: editarTelefono.value.trim(),
+  if (!editarNombre.value || !editarMonto.value || !editarFechaEntrada.value) { alert("Nombre, monto y fecha son obligatorios."); return; }
+  actualizarCliente(clienteEditando.id, {
+    nombre: editarNombre.value,
+    correo: editarCorreo.value,
+    telefono: editarTelefono.value,
     fechaEntrada: editarFechaEntrada.value,
     monto: parseFloat(editarMonto.value),
     servicio: editarServicio.value
-  };
-
-  actualizarCliente(clienteEditando.id, datosActualizados);
+  });
   modalEditar.style.display = "none";
-  clienteEditando = null;
 });
 
 btnCancelarEdicion.addEventListener("click", () => modalEditar.style.display = "none");
-if (btnVolver) btnVolver.addEventListener("click", () => window.location.href="index.html");
 
-// LISTENERS DE PAGO
 btnRegistrarPago.addEventListener("click", () => {
-    if (!clientePagando || !pagoMonto.value || !pagoFecha.value || !pagoMetodo.value || !pagoMeses.value || parseInt(pagoMeses.value) < 1) {
-        alert("Completa todos los campos del pago correctamente y asegura que los meses pagados sea al menos 1.");
-        return;
-    }
-
-    const datosPago = {
-        monto: parseFloat(pagoMonto.value),
-        fecha: pagoFecha.value,
-        metodo: pagoMetodo.value,
-        meses: parseInt(pagoMeses.value)
-    };
-
-    registrarPago(clientePagando.id, datosPago);
+  registrarPago(clientePagando.id, {
+    monto: parseFloat(pagoMonto.value),
+    fecha: pagoFecha.value,
+    metodo: pagoMetodo.value,
+    meses: parseInt(pagoMeses.value)
+  });
 });
 
-btnCancelarPago.addEventListener("click", () => {
-    modalPago.style.display = "none";
-    clientePagando = null;
+btnCancelarPago.addEventListener("click", () => modalPago.style.display = "none");
+
+btnCerrarHistorial.addEventListener("click", () => modalPagosHistorial.style.display = "none");
+
+btnBuscar.addEventListener("click", () => {
+  const term = buscadorInput.value.toLowerCase();
+  const filtrados = clientes.filter(c => c.nombre.toLowerCase().includes(term) || c.servicio.toLowerCase().includes(term));
+  render(filtrados);
 });
 
-// LISTENERS DEL BUSCADOR: Ejecutar la búsqueda al hacer clic en el botón o al teclear
-btnBuscar.addEventListener("click", filtrarClientes);
-// Ejecuta la búsqueda mientras el usuario escribe
-buscadorInput.addEventListener("input", filtrarClientes);
+// Botón volver
+if (btnVolver) {
+    btnVolver.addEventListener("click", () => {
+        // Cambia la ruta según tu estructura de carpetas
+        window.location.href="../index.html"; 
+    });
+}
 
 
-// **INICIO DE LA APLICACIÓN:** Cargar datos de Firebase al inicio
-cargarClientes(); 
-
-/* --- Re-renderizar para actualizar días automáticamente (cada 6 horas) --- */
-setInterval(cargarClientes, 1000 * 60 * 60 * 6);
+// ===============================================
+// 9. INICIALIZACIÓN
+// ===============================================
+cargarClientes();

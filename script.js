@@ -474,7 +474,6 @@ if (btnFacturar) btnFacturar.addEventListener("click", async () => {
     const cliente = (inputCliente && inputCliente.value.trim()) ? inputCliente.value.trim() : "Consumidor Final";
     const metodoPago = (metodoPagoSelect && metodoPagoSelect.value) ? metodoPagoSelect.value : metodoSeleccionado;
     const numeroFactura = "FAC-" + Date.now();
-    // Almacenar fecha en un formato ISO para facilitar consultas en Firestore
     const fechaFactura = new Date().toISOString(); 
     const total = productosSeleccionados.reduce((acc, p) => acc + Number(p.precio), 0);
 
@@ -485,49 +484,50 @@ if (btnFacturar) btnFacturar.addEventListener("click", async () => {
         total,
         cliente,
         metodoPago,
-        // Formato de fecha local para impresión
-        fechaFacturaLocal: new Date().toLocaleString("es-DO", { hour12: true }) 
+        fechaFacturaLocal: new Date().toLocaleString("es-DO", { hour12: true })
     };
 
-    // guardar factura (Usa la función de Firestore)
     try {
+        // Guardar factura en Firestore
         await addFactura(facturaObj);
-    } catch (err) {
-        console.error("Error guardando factura:", err);
-        mostrarMensajeVisual("Error guardando factura (revisa consola)", "error");
-        return;
-    }
 
-    // crear recibo automático (Usa la función de Firestore)
-    const reciboObj = {
-        // Usar formato ISO para fecha para la BD, y local para impresión
-        fecha: new Date().toISOString(), 
-        cliente,
-        monto: total,
-        concepto: `Pago factura ${numeroFactura}`,
-        origenFactura: numeroFactura,
-        fechaLocal: new Date().toLocaleString("es-DO", { hour12: true })
-    };
-    try { await addRecibo(reciboObj); } catch (e) { console.warn("No se guardó recibo:", e); }
+        // 🔹 Actualizar stock de cada producto
+        for (let p of productosSeleccionados) {
+            if (p.stock !== undefined && !isNaN(p.stock)) {
+                const nuevoStock = Math.max(0, Number(p.stock) - 1); // restamos 1 unidad
+                await updateProducto(p.id, { stock: nuevoStock });
+            }
+        }
 
-    mostrarMensajeVisual("✅ Factura generada con éxito", "success");
+        // Crear recibo automático
+        const reciboObj = {
+            fecha: new Date().toISOString(), 
+            cliente,
+            monto: total,
+            concepto: `Pago factura ${numeroFactura}`,
+            origenFactura: numeroFactura,
+            fechaLocal: new Date().toLocaleString("es-DO", { hour12: true })
+        };
+        await addRecibo(reciboObj);
 
-    // generar ticket (jsPDF)
-    try {
+        mostrarMensajeVisual("✅ Factura generada con éxito", "success");
+
+        // 🔹 Generar PDF y descargar directamente
         generarFacturaTicket(facturaObj);
-    } catch (err) {
-        console.error("Error generando PDF:", err);
-        // fallback: imprimir HTML simple
-        imprimirFacturaHTML(facturaObj);
-    }
 
-    // limpiar y mantener modal cerrado
-    productosSeleccionados = [];
-    mostrarFactura();
-    modalFacturacion.style.display = "none";
-    await cargarHistorial();
-    await cargarProductos(); // Recargar productos por si hubo cambios de stock (aunque no se implementó en este código)
+        // Limpiar selección y cerrar modal
+        productosSeleccionados = [];
+        mostrarFactura();
+        modalFacturacion.style.display = "none";
+        await cargarHistorial();
+        await cargarProductos();
+
+    } catch (err) {
+        console.error("Error al generar factura:", err);
+        mostrarMensajeVisual("Error generando factura (revisa consola)", "error");
+    }
 });
+
 
 // ================================
 // Recibo de Caja (modal manual) (Mismo código, sin cambios lógicos)
@@ -809,15 +809,8 @@ function imprimirRecibo(obj) {
 // Generar ticket estilo supermercado (jsPDF) (Mismo código, sin cambios)
 // ================================
 function generarFacturaTicket(f) {
-    // Asegurarse de que jsPDF esté cargado
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-        throw new Error("jsPDF no está disponible. Incluye la librería antes de script.js");
-    }
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({
-        unit: "mm",
-        format: [80, 200]
-    });
+    const doc = new jsPDF({ unit: "mm", format: [80, 200] });
 
     let y = 8;
     doc.setFont("courier", "bold");
@@ -843,16 +836,22 @@ function generarFacturaTicket(f) {
         doc.text(name, 6, y);
         doc.text(`RD$${Number(p.precio).toFixed(2)}`, 66, y, { align: "right" });
         y += 5;
-        // si y se acerca al final, agregar página (por si hay muchos productos)
-        if (y > 195) {
-            doc.addPage([80, 200]);
-            y = 10;
-        }
+        if (y > 195) { doc.addPage([80, 200]); y = 10; }
     });
 
     doc.line(6, y, 74, y); y += 6;
     doc.text(`Total: RD$ ${Number(f.total).toFixed(2)}`, 66, y, { align: "right" }); y += 5;
     doc.text("¡Gracias por su compra!", 40, y + 5, { align: "center" });
 
-    doc.save(`Factura-${f.numeroFactura}.pdf`);
+    // ⚡ Aquí hacemos la descarga en la misma ventana
+    const pdfBlob = doc.output('blob');  // generamos un Blob
+    const url = URL.createObjectURL(pdfBlob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Factura-${f.numeroFactura}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
