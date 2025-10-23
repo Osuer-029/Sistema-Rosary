@@ -445,12 +445,6 @@ function mostrarFactura() {
     });
 }
 
-// Mostrar todos los productos disponibles (Se eliminó esta función duplicada e incorrecta y ahora se usa mostrarProductos)
-/*
-function mostrarProductosDisponibles() {
-    // ... Código eliminado / corregido
-}
-*/
 
 
 // Inicializamos productos disponibles al cargar página
@@ -484,24 +478,25 @@ if (btnFacturar) btnFacturar.addEventListener("click", async () => {
         total,
         cliente,
         metodoPago,
-        fechaFacturaLocal: new Date().toLocaleString("es-DO", { hour12: true })
+        fechaFacturaLocal: new Date().toLocaleString("es-DO", { hour12: true }) 
     };
 
     try {
-        // Guardar factura en Firestore
+        // 1️⃣ Guardar factura en Firestore
         await addFactura(facturaObj);
 
-        // 🔹 Actualizar stock de cada producto
+        // 2️⃣ Actualizar stock automáticamente
         for (let p of productosSeleccionados) {
-            if (p.stock !== undefined && !isNaN(p.stock)) {
-                const nuevoStock = Math.max(0, Number(p.stock) - 1); // restamos 1 unidad
+            if (p.stock !== undefined && p.id) {
+                let nuevoStock = p.stock - 1; // disminuir en 1 por cada unidad facturada
+                if (nuevoStock < 0) nuevoStock = 0;
                 await updateProducto(p.id, { stock: nuevoStock });
             }
         }
 
-        // Crear recibo automático
+        // 3️⃣ Crear recibo automático
         const reciboObj = {
-            fecha: new Date().toISOString(), 
+            fecha: new Date().toISOString(),
             cliente,
             monto: total,
             concepto: `Pago factura ${numeroFactura}`,
@@ -510,23 +505,27 @@ if (btnFacturar) btnFacturar.addEventListener("click", async () => {
         };
         await addRecibo(reciboObj);
 
-        mostrarMensajeVisual("✅ Factura generada con éxito", "success");
+        // 4️⃣ Mostrar mensaje de éxito
+        mostrarMensajeVisual("✅ Factura generada y stock actualizado", "success");
 
-        // 🔹 Generar PDF y descargar directamente
+        // 5️⃣ Generar y descargar PDF directamente
         generarFacturaTicket(facturaObj);
 
-        // Limpiar selección y cerrar modal
+        // 6️⃣ Limpiar selección y cerrar modal
         productosSeleccionados = [];
         mostrarFactura();
         modalFacturacion.style.display = "none";
+
+        // 7️⃣ Recargar historial y productos
         await cargarHistorial();
         await cargarProductos();
 
     } catch (err) {
-        console.error("Error al generar factura:", err);
-        mostrarMensajeVisual("Error generando factura (revisa consola)", "error");
+        console.error("Error al facturar:", err);
+        mostrarMensajeVisual("Error al generar la factura (revisa consola)", "error");
     }
 });
+
 
 
 // ================================

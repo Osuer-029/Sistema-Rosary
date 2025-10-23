@@ -476,3 +476,206 @@ section {
   font-size: 0.9rem;
   color: #555;
 }
+
+
+
+/* ============================= */
+/* MODAL FACTURA PROFESIONAL */
+/* ============================= */
+#modal-factura {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+#modal-factura .modal-content {
+  background-color: #fff;
+  padding: 1.5rem 1.5rem 2rem 1.5rem; /* más espacio abajo para botones */
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px; /* ancho tipo ticket */
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  font-family: monospace;
+  white-space: pre-wrap;
+  text-align: center;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#factura-contenido {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 1.2rem;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Botones dentro del modal de factura */
+#modal-factura .modal-btns {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+#modal-factura .modal-btns button {
+  background-color: #43cea2;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-width: 120px;
+}
+
+#modal-factura .modal-btns button:hover {
+  background-color: #2ebd91;
+}
+
+/* ====== Responsive ====== */
+@media (max-width: 900px) {
+  #modal-factura .modal-content {
+    max-width: 360px;
+    font-size: 13px;
+  }
+
+  #modal-factura .modal-btns button {
+    min-width: 100px;
+    padding: 0.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #modal-factura .modal-content {
+    width: 95%;
+    font-size: 12px;
+    padding: 1rem 1rem 1.5rem 1rem;
+  }
+
+  #modal-factura .modal-btns {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  #modal-factura .modal-btns button {
+    width: 100%;
+    font-size: 0.95rem;
+    padding: 0.5rem;
+  }
+}
+
+/* ============================= */
+/* MODAL FACTURA PROFESIONAL LIMPIO Y OPTIMIZADO */
+/* ============================= */
+#modal-factura {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+#modal-factura .modal-content {
+  background-color: #fff;
+  padding: 1.5rem 1.5rem 2.2rem 1.5rem; /* espacio extra abajo para botones */
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px; /* ancho tipo ticket */
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* los botones se quedan abajo */
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(223, 0, 0, 0.3);
+  font-family: monospace;
+  white-space: pre-wrap;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Contenido del ticket */
+#factura-contenido {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 1.5rem;
+  font-size: 14px;
+  color: #333;
+  padding-right: 0.5rem;
+}
+
+/* Botones dentro del modal */
+#modal-factura .modal-btns {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+#modal-factura .modal-btns button {
+  background-color: #43cea2;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-width: 120px;
+}
+
+#modal-factura .modal-btns button:hover {
+  background-color: #2ebd91;
+}
+
+/* ============================= */
+/* RESPONSIVE ADAPTADO PARA MOVIL */
+/* ============================= */
+@media (max-width: 900px) {
+  #modal-factura .modal-content {
+    max-width: 360px;
+    font-size: 13px;
+  }
+
+  #modal-factura .modal-btns button {
+    min-width: 100px;
+    padding: 0.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #modal-factura .modal-content {
+    width: 95%;
+    font-size: 12px;
+    padding: 1rem 1rem 1.5rem 1rem;
+  }
+
+  #modal-factura .modal-btns {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  #modal-factura .modal-btns button {
+    width: 100%;
+    font-size: 0.95rem;
+    padding: 0.5rem;
+  }
+}
+
+
+

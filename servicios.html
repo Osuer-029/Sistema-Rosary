@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Servicios — Heladería Rosary</title>
 <link rel="stylesheet" href="servicios.css">
+
+<!-- ✅ Librería jsPDF para generar PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 <header>
   <h1>📅 Servicios</h1>
-  <!-- Botón Volver seguro con enlace relativo -->
   <a href="index.html" id="btn-volver" class="boton-volver">🏠 Volver</a>
-  
-  <!-- Nuevo botón para abrir el estado de cuenta -->
   <button id="btn-estado-cuenta">💳 Estado de Cuenta</button>
 </header>
 
@@ -48,7 +48,7 @@
   </section>
 </main>
 
-<!-- Modales existentes -->
+<!-- MODAL EDITAR CLIENTE -->
 <div id="modal-editar" class="modal">
   <div class="modal-content">
     <h3>✏️ Editar Cliente</h3>
@@ -72,10 +72,10 @@
   </div>
 </div>
 
+<!-- MODAL REGISTRAR PAGO -->
 <div id="modal-pago" class="modal">
   <div class="modal-content">
     <h3>✅ Registrar Pago de <span id="pago-cliente-nombre">Cliente</span></h3>
-    
     <label for="pago-monto">Monto Pagado</label>
     <input type="number" id="pago-monto" placeholder="Monto">
     
@@ -99,6 +99,7 @@
   </div>
 </div>
 
+<!-- MODAL HISTORIAL DE PAGOS -->
 <div id="modal-pagos-historial" class="modal">
   <div class="modal-content">
     <h3 id="historial-cliente-nombre">Historial de Pagos de Cliente</h3>
@@ -112,11 +113,10 @@
   </div>
 </div>
 
-<!-- NUEVO MODAL: Estado de Cuenta con rango de fechas -->
+<!-- MODAL ESTADO DE CUENTA -->
 <div id="modal-estado-cuenta" class="modal">
   <div class="modal-content">
     <h3>💳 Estado de Cuenta</h3>
-
     <div style="margin-bottom: 1rem;">
       <label for="fecha-desde">Desde:</label>
       <input type="date" id="fecha-desde">
@@ -124,11 +124,21 @@
       <input type="date" id="fecha-hasta">
       <button id="btn-filtrar-fechas">Filtrar</button>
     </div>
-
     <div id="estado-cuenta-lista" style="max-height: 60vh; overflow-y: auto;"></div>
-
+    <div style="margin-top:1rem; font-weight:bold;" id="total-cobrar"></div>
     <div class="modal-btns">
       <button id="btn-cerrar-estado-cuenta">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FACTURA -->
+<div id="modal-factura" class="modal">
+  <div class="modal-content">
+    <div id="factura-contenido"></div>
+    <div class="modal-btns">
+      <button id="btn-imprimir-pdf">🖨️ Imprimir / PDF</button>
+      <button id="btn-cerrar-factura">❌ Cerrar</button>
     </div>
   </div>
 </div>
