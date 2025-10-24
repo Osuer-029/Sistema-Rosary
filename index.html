@@ -16,6 +16,7 @@
   <button id="btn-historial">📜 Historial</button>
   <button id="btn-recibo">💵 Recibo de Caja</button>
   <button id="btn-servicios">Servicios</button>
+  <button id="btnCuadreGeneral" class="btn-cuadre">💰 Cuadre General</button>
 </header>
 
 <main>
@@ -139,11 +140,21 @@
 
 <script type="module" src="script.js"></script>
 
+
+
+
 <!-- Script Servicios -->
 <script>
   document.getElementById("btn-servicios").addEventListener("click", () => {
     window.open("servicios.html", "_blank");
   });
 </script>
+
+<script>
+   document.getElementById('btnCuadreGeneral').addEventListener('click', () => {
+    window.open('cuadre.html', '_blank'); // abre el módulo en una nueva pestaña
+  });
+</script>
+
 </body>
 </html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuadre - Ingresos y Gastos</title>
+    <link rel="stylesheet" href="cuadre.css">
+</head>
+<body>
+    <header class="cuadre-header">
+        <h1>Mi Cuadre Financiero 💰</h1>
+        <div id="balance-total">
+            <p>Balance Total: <span id="valor-total">$0.00</span></p>
+        </div>
+    </header>
+
+    <main class="cuadre-main">
+        
+        <section class="nueva-transaccion">
+            <h2>Nueva Transacción</h2>
+            <form id="formulario-transaccion">
+                <select id="tipo-operacion" required>
+                    <option value="" disabled selected>Selecciona Tipo</option>
+                    <option value="ingreso">Ingreso (+)</option>
+                    <option value="gasto">Gasto (-)</option>
+                </select>
+
+                <input type="text" id="descripcion" placeholder="Descripción (Ej: Sueldo, Alquiler)" required>
+
+                <input type="number" id="monto" placeholder="Monto (Ej: 500.00)" required min="0.01" step="0.01">
+                
+                <button type="submit" class="btn-agregar">Agregar al Cuadre</button>
+            </form>
+        </section>
+
+        <section class="historial-transacciones">
+            <h2>Detalle de Movimientos</h2>
+            <ul id="lista-movimientos">
+                </ul>
+        </section>
+
+    </main>
+    
+    <script type="module" src="cuadre.js"></script>
+</body>
+</html>

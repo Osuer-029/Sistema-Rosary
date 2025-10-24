@@ -1,0 +1,132 @@
+/* 1. Reset Básico */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7f6; /* Fondo suave */
+    color: #333;
+    line-height: 1.6;
+}
+
+/* 2. Estilos del Encabezado (Profesional) */
+.cuadre-header {
+    background-color: #007bff; /* Color primario azul */
+    color: white;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#balance-total {
+    margin-top: 10px;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+/* 3. Estilos de Contenido Principal (Adaptativo - Mobile First) */
+.cuadre-main {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+/* 4. Estilos de Formularios e Inputs */
+.nueva-transaccion {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+#formulario-transaccion {
+    display: flex;
+    flex-direction: column; /* Apilados en móvil */
+    gap: 10px;
+}
+
+#formulario-transaccion input, 
+#formulario-transaccion select, 
+.btn-agregar {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.btn-agregar {
+    background-color: #28a745; /* Botón de acción verde */
+    color: white;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-agregar:hover {
+    background-color: #1e7e34;
+}
+
+/* 5. Historial de Transacciones (Dinámico) */
+.historial-transacciones {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+#lista-movimientos {
+    list-style: none;
+}
+
+.movimiento-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.movimiento-item:last-child {
+    border-bottom: none;
+}
+
+.ingreso-monto {
+    color: #28a745; /* Verde para ingresos */
+    font-weight: bold;
+}
+
+.gasto-monto {
+    color: #dc3545; /* Rojo para gastos */
+    font-weight: bold;
+}
+
+/* 6. Media Query para PC/Tablets (Adaptativo) */
+@media (min-width: 768px) {
+    .cuadre-main {
+        display: grid;
+        grid-template-columns: 1fr 2fr; /* Columna de form y columna de lista */
+        gap: 30px;
+    }
+    
+    #formulario-transaccion {
+        /* En PC, los campos pueden ir en una fila */
+        flex-direction: row; 
+        align-items: stretch;
+    }
+
+    #formulario-transaccion input, 
+    #formulario-transaccion select, 
+    .btn-agregar {
+        /* Distribución de espacio */
+        flex-grow: 1; 
+    }
+    
+    .btn-agregar {
+        flex-grow: 0; /* Para que el botón no ocupe todo el espacio sobrante */
+        min-width: 150px;
+    }
+}

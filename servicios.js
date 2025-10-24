@@ -120,6 +120,26 @@ async function getPagosCliente(clienteId) {
   return snapshot.docs.map(d => ({ id: d.id, ...d.data(), fechaPago: d.data().fechaPago.toDate() }));
 }
 
+// ===============================================
+// 4.1. Registrar movimiento en Cuadre (Ingreso/Gasto)
+// ===============================================
+async function registrarEnCuadre(tipo, descripcion, monto) {
+  try {
+    const cuadreRef = collection(db, "transacciones_financieras"); // coincide con tu cuadre.js
+    await addDoc(cuadreRef, {
+      type: tipo === "ingreso" ? "ingreso" : "ingreso",
+      concept: descripcion,
+      monto: Number(monto),
+      date: new Date().toISOString().slice(0,10),
+      timestamp: new Date()
+    });
+    console.log(`✅ Movimiento registrado en cuadre: ${tipo} - ${descripcion} - $${monto}`);
+  } catch (e) {
+    console.error("❌ Error al registrar en cuadre:", e);
+  }
+}
+
+
 async function registrarPago(clienteId, datosPago) {
   const clienteRef = doc(db, CLIENTES_COLLECTION, clienteId);
   await runTransaction(db, async (transaction) => {
@@ -145,10 +165,24 @@ async function registrarPago(clienteId, datosPago) {
     });
   });
 
+  // ⚡️ Aquí sí puedes usar el cliente desde tu arreglo 'clientes'
+  const cliente = clientes.find(c => c.id === clienteId);
+  if (cliente) {
+    await registrarEnCuadre(
+      "ingreso",
+      `Pago de ${cliente.nombre}`,
+      datosPago.monto
+    );
+  }
+
   alert("Pago registrado correctamente");
   modalPago.style.display = "none";
   cargarClientes();
 }
+
+
+
+
 
 // ===============================================
 // 5. HISTORIAL DE PAGOS
@@ -377,29 +411,78 @@ btnEstadoCuenta.onclick = () => modalEstadoCuenta.style.display = "flex";
 btnCerrarEstadoCuenta.onclick = () => modalEstadoCuenta.style.display = "none";
 
 btnFiltrarFechas.onclick = async () => {
-  if (!fechaDesde.value || !fechaHasta.value) return alert("Selecciona un rango de fechas");
-  const desde = new Date(fechaDesde.value.replace(/-/g,'/'));
-  const hasta = new Date(fechaHasta.value.replace(/-/g,'/'));
-  desde.setHours(0,0,0,0); 
-  hasta.setHours(23,59,59,999);
+  if (!fechaDesde.value || !fechaHasta.value)
+    return alert("Selecciona un rango de fechas");
+
+  const desde = new Date(fechaDesde.value.replace(/-/g, '/'));
+  const hasta = new Date(fechaHasta.value.replace(/-/g, '/'));
+  desde.setHours(0, 0, 0, 0);
+  hasta.setHours(23, 59, 59, 999);
 
   await cargarClientes();
   estadoCuentaLista.innerHTML = "";
   let total = 0;
 
-  for (const cliente of clientes) {
-    // Convierte la fecha de corte a objeto Date
-    const fechaCorte = new Date(cliente.fechaEntrada.replace(/-/g,'/'));
+  const hoy = new Date();
 
-    // Compara la fecha de corte con el rango seleccionado
+  for (const cliente of clientes) {
+    const fechaCorte = new Date(cliente.fechaEntrada.replace(/-/g, '/'));
+    const monto = Number(cliente.monto);
+
+    // Verifica si la fecha de corte está en el rango seleccionado
     if (fechaCorte >= desde && fechaCorte <= hasta) {
-      estadoCuentaLista.innerHTML += `<p>${cliente.nombre} | $${Number(cliente.monto).toFixed(2)} | ${cliente.servicio} | Corte: ${fechaCorte.toLocaleDateString('es-ES')}</p>`;
-      total += Number(cliente.monto);
+      // Calculamos diferencia de meses entre hoy y la fecha de corte
+      const diffMeses =
+        (hoy.getFullYear() - fechaCorte.getFullYear()) * 12 +
+        (hoy.getMonth() - fechaCorte.getMonth());
+
+      let estado = "";
+      if (hoy < fechaCorte) {
+        // Todavía no llegó el vencimiento
+        const diasRestantes = Math.ceil(
+          (fechaCorte - hoy) / (1000 * 60 * 60 * 24)
+        );
+        estado = `🟢 Al día (${diasRestantes} días restantes)`;
+      } else if (diffMeses === 0) {
+        // Vence este mes
+        estado = "🟡 Pago vence este mes";
+      } else if (diffMeses > 0) {
+        // Vencido
+        estado = `🔴 ${diffMeses} mes(es) vencido(s)`;
+      }
+
+      // Calcula si tiene pagos pendientes (basado en historial)
+      let mesesPagados = 0;
+      if (cliente.pagos && Array.isArray(cliente.pagos)) {
+        mesesPagados = cliente.pagos.reduce(
+          (acc, p) => acc + (p.mesesPagados || 1),
+          0
+        );
+      }
+
+      const mesesPendientes = diffMeses - mesesPagados;
+      if (mesesPendientes > 0) {
+        estado = `🟡 ${mesesPendientes} mes(es) pendiente(s) de pago`;
+      } else if (mesesPendientes === 0 && diffMeses > 0) {
+        estado = "🟢 Pagos al día";
+      }
+
+      estadoCuentaLista.innerHTML += `
+        <div class="estado-cuenta-item">
+          <p><strong>${cliente.nombre}</strong> — ${cliente.servicio}</p>
+          <p>Monto mensual: $${monto.toFixed(2)}</p>
+          <p>Próximo corte: ${fechaCorte.toLocaleDateString('es-ES')}</p>
+          <p>Estado: ${estado}</p>
+          <hr>
+        </div>
+      `;
+      total += monto;
     }
   }
 
   totalCobrar.textContent = `💰 Total a cobrar: $${total.toFixed(2)}`;
 };
+
 
 
 // ===============================================

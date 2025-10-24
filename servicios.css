@@ -1,680 +1,640 @@
 /* =======================================================
-   servicios.css — Diseño responsive para Heladería Rosary
-   ======================================================= */
+    servicios.css — Diseño responsive para Heladería Rosary
+    ======================================================= */
 
 /* -------- Reset y estilo base -------- */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
 }
 
 body {
-  background: #f7f9fc;
-  color: #333;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+    background: #f7f9fc;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* -------- Header -------- */
 header {
-  background: linear-gradient(135deg, #a8edea, #43cea2);
-  color: white;
-  padding: 1rem;
-  text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+    background: linear-gradient(135deg, #a8edea, #43cea2);
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 header h1 {
-  font-size: 1.6rem;
-  margin-bottom: 0.5rem;
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
 }
 
 #btn-volver {
-  background: white;
-  color: #43cea2;
-  border: none;
-  padding: 0.6rem 1rem;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
+    background: white;
+    color: #43cea2;
+    border: none;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
 #btn-volver:hover {
-  background: #ffe4e8;
+    background: #ffe4e8;
 }
 
 /* -------- Main layout -------- */
 main {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 2rem;
-  padding: 2rem;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+    padding: 2rem;
 }
 
 section {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
 }
 
 /* -------- Formulario -------- */
 .formulario h2 {
-  margin-bottom: 1rem;
-  color: #43cea2;
-  text-align: center;
+    margin-bottom: 1rem;
+    color: #43cea2;
+    text-align: center;
 }
 
 .formulario input,
 .formulario select,
 .formulario button {
-  display: block;
-  width: 100%;
-  padding: 0.7rem;
-  margin-bottom: 1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
+    display: block;
+    width: 100%;
+    padding: 0.7rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
 }
 
 .formulario input:focus,
 .formulario select:focus {
-  border-color: #43cea2;
-  outline: none;
-  box-shadow: 0 0 3px #43cea2;
+    border-color: #43cea2;
+    outline: none;
+    box-shadow: 0 0 3px #43cea2;
 }
 
 #btn-agregar {
-  background: #43cea2;
-  color: white;
-  border: none;
-  font-weight: 600;
-  transition: 0.3s;
+    background: #43cea2;
+    color: white;
+    border: none;
+    font-weight: 600;
+    transition: 0.3s;
 }
 
 #btn-agregar:hover {
-  background: #a8edea;
+    background: #a8edea;
 }
 
-/* -------- Lista de clientes -------- */
+/* ... (El resto del CSS se mantiene igual) ... */
+
+/* -------- Lista de clientes (REINTRODUCIENDO BOTÓN DE FORMA PROFESIONAL) -------- */
 .lista-clientes h2 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 1rem;
+    text-align: center;
+    color: #333;
+    margin-bottom: 1rem;
 }
 
 .buscador-container {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+    /* CLAVE: Usamos Flexbox para alinear el input y el botón */
+    display: flex; 
+    gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 #buscador-input {
-  flex: 1;
-  padding: 0.7rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+    flex: 1; /* Ocupa la mayor parte del espacio */
+    padding: 0.7rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
 }
 
 #btn-buscar {
-  background: #6c5ce7;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.7rem 1rem;
-  cursor: pointer;
-  font-weight: 600;
+    background: #6c5ce7; /* Color principal (Morado) */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1rem; 
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap; /* Evita que el texto del botón se corte */
+    transition: background 0.2s;
 }
 
 #btn-buscar:hover {
-  background: #5a4bcf;
+    background: #5a4bcf;
 }
 
-/* -------- Cards de clientes -------- */
+
+/* -------- Cards de clientes (PROFESIONAL Y ULTRACUMPACTO) -------- */
 #clientes-lista {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
-  padding: 0.5rem;
+    display: grid;
+    /* Ancho adaptativo pero con mínimo decente */
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+    gap: 0.8rem; /* Espacio moderado entre tarjetas */
+    padding: 0.5rem;
 }
 
 /* === Tarjeta de cliente organizada y compacta === */
 .card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
-  border-left: 6px solid #43cea2;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  transition: transform 0.2s;
+    background: #fff;
+    border-radius: 10px; 
+    /* CLAVE: Padding vertical muy reducido para hacerla corta */
+    padding: 0.6rem 0.8rem; 
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Sombra más profesional */
+    border-left: 4px solid #43cea2; /* Borde sutil */
+    display: flex;
+    flex-direction: column;
+    /* CLAVE: Espacio mínimo entre secciones */
+    gap: 0.3rem; 
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .card:hover {
-  transform: translateY(-2px);
+    transform: translateY(-3px); /* Efecto de elevación más notable */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 /* Cabecera: nombre + servicio */
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Alineación superior */
+    flex-wrap: nowrap; /* Evita saltos de línea innecesarios */
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
+    border-bottom: 1px solid #f0f0f0; /* Separador limpio */
 }
 
 .card-header h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #333;
+    font-size: rem; /* Mantiene la legibilidad del nombre */
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.2;
+    margin-right: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .card-header span {
-  font-size: 0.85rem;
-  color: #555;
-  font-weight: 500;
+    background: #43cea2;
+    color: white;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.75rem; /* Tamaño de etiqueta legible */
+    font-weight: 600;
+    align-self: flex-start; /* Lo mantiene arriba a la derecha */
 }
 
-/* Información de contacto */
-.contacto-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  font-size: 0.85rem;
-  color: #555;
+/* Información de contacto y detalles (fusionados visualmente) */
+.info-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem; /* Espacio mínimo entre líneas */
+    font-size: 0.8rem; /* Tamaño de fuente legible */
+    color: #555;
+    padding: 0.1rem 0;
 }
 
-.contacto-info p {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-/* Detalles: próximo corte, monto */
-.card-detalles {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  font-size: 0.85rem;
-  color: #444;
-}
-
+.contacto-info p,
 .card-detalles p {
-  margin: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    line-height: 1.0; /* Ajusta la altura de línea */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .card-detalles strong {
-  color: #222;
+    color: #333;
+    font-weight: 600;
 }
 
-/* Contador días restantes */
+/* Contador días restantes (Posicionado discretamente) */
 .contador {
-  text-align: center;
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: #e67e22;
+    text-align: right;
+    font-weight: 700;
+    font-size: 0.85rem; 
+    color: #e67e22;
+    margin-top: 0.3rem; /* Separación sutil */
+    padding-top: 0.3rem;
+    border-top: 1px solid #f0f0f0; /* Separador de la zona de botones */
 }
 
-/* Botones de acción */
+.contador strong {
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-block;
+    color: white;
+}
+.alerta-roja { background-color: #e74c3c; }
+.alerta-amarilla { background-color: #f39c12; color: #333 !important;}
+.contador strong:not(.alerta-roja):not(.alerta-amarilla) { background-color: #2ecc71; }
+
+
+/* Botones de acción (Organización profesional) */
 .acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  justify-content: space-between;
+    display: grid;
+    /* 2 o 3 columnas de botones, dependiendo de cuántos tengas */
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 0.3rem; 
+    margin-top: 0.5rem; 
 }
 
+/* Regla para 4 botones (2x2) o 3 botones (3x1) */
 .acciones button {
-  flex: 1 1 48%;
-  padding: 0.4rem 0.5rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  color: #fff;
-  transition: 0.2s;
+    /* Ajusta el padding para que el texto se vea bien (legible) */
+    padding: 0.4rem 0.6rem; 
+    border: none;
+    border-radius: 4px; 
+    font-size: 0.85rem; /* Fuente legible en el botón */
+    font-weight: 600;
+    cursor: pointer;
+    color: #fff;
+    transition: 0.2s;
+    text-align: center;
+    min-width: 0;
+}
+
+/* Si quieres que el botón de historial/imprimir ocupe todo el ancho inferior, puedes usar una clase adicional */
+.acciones .btn-full-width {
+    grid-column: span 2; 
+    margin-top: 0.2rem;
 }
 
 .btn-pago { background: #00b894; }
 .btn-editar { background: #0984e3; }
 .btn-eliminar { background: #d63031; }
 .btn-historial-pago { background: #6c5ce7; }
+.btn-imprimir { background: #e67e22; }
 
 .acciones button:hover {
-  opacity: 0.85;
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
 /* -------- Modales -------- */
 .modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
 .modal-content {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  max-width: 420px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  animation: fadeIn 0.3s ease;
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 420px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    animation: fadeIn 0.3s ease;
 }
 
 .modal-content h3 {
-  margin-bottom: 1rem;
-  color: #333;
-  text-align: center;
+    margin-bottom: 1rem;
+    color: #333;
+    text-align: center;
 }
 
 .modal-content input,
 .modal-content select {
-  width: 100%;
-  padding: 0.6rem;
-  margin-bottom: 1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+    width: 100%;
+    padding: 0.6rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
 }
 
 .modal-btns {
-  display: flex;
-  gap: 0.8rem;
-  justify-content: center;
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
 }
 
 .modal-btns button {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
 }
 
 #guardar-edicion, #btn-registrar-pago {
-  background: #27ae60;
-  color: white;
+    background: #27ae60;
+    color: white;
 }
 
 #cancelar-edicion, #btn-cancelar-pago, #btn-cerrar-historial {
-  background: #e74c3c;
-  color: white;
+    background: #e74c3c;
+    color: white;
 }
 
 /* Animación */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* -------- Responsive design -------- */
 @media (max-width: 900px) {
-  main {
-    grid-template-columns: 1fr;
-    padding: 1rem;
-  }
+    main {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
 
-  header h1 {
-    font-size: 1.4rem;
-  }
+    header h1 {
+        font-size: 1.4rem;
+    }
 
-  .formulario,
-  .lista-clientes {
-    padding: 1rem;
-  }
+    .formulario,
+    .lista-clientes {
+        padding: 1rem;
+    }
 
-  .acciones button {
-    flex: 1 1 48%;
-    font-size: 0.85rem;
-  }
+    .acciones {
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablet */
+        gap: 0.4rem;
+    }
 
-  .buscador-container {
-    flex-direction: column;
-  }
+    .acciones button {
+        font-size: 0.8rem;
+    }
 
-  #btn-buscar {
-    width: 100%;
-  }
+    .buscador-container {
+        flex-direction: column;
+    }
+
+    #btn-buscar {
+        width: 100%;
+    }
 }
 
 @media (max-width: 480px) {
-  header h1 {
-    font-size: 1.2rem;
-  }
+    header h1 {
+        font-size: 1.2rem;
+    }
 
-  #btn-volver {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.9rem;
-  }
+    #btn-volver {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
 
-  .formulario input,
-  .formulario select {
-    font-size: 0.9rem;
-  }
+    .formulario input,
+    .formulario select {
+        font-size: 0.9rem;
+    }
 
-  .acciones button {
-    flex: 1 1 100%;
-  }
+    .acciones {
+        grid-template-columns: 1fr; /* 1 columna en móvil */
+        gap: 0.5rem;
+    }
+    
+    .acciones button {
+        width: 100%;
+        font-size: 0.9rem; 
+        padding: 0.5rem;
+    }
+    
+    .acciones .btn-full-width {
+        grid-column: span 1; 
+    }
 
-  #clientes-lista {
-    grid-template-columns: 1fr;
-  }
+    #clientes-lista {
+        grid-template-columns: 1fr;
+    }
 }
 
 
 /* ============================= */
-/* ESTADO DE CUENTA - MODAL NUEVO */
+/* ESTADO DE CUENTA - MODAL */
 /* ============================= */
 #modal-estado-cuenta {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.6);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
 #modal-estado-cuenta .modal-content {
-  background-color: #fff;
-  padding: 1.5rem;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-  position: relative;
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    position: relative;
 }
 
 #modal-estado-cuenta h3 {
-  margin-top: 0;
-  font-size: 1.3rem;
-  color: #2c3e50;
-  text-align: center;
+    margin-top: 0;
+    font-size: 1.3rem;
+    color: #2c3e50;
+    text-align: center;
 }
 
 #modal-estado-cuenta label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-  color: #34495e;
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    color: #34495e;
 }
 
 #modal-estado-cuenta select,
 #modal-estado-cuenta input[type="date"] {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 0.95rem;
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
 }
 
 #modal-estado-cuenta .modal-btns {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
 }
 
 #modal-estado-cuenta .modal-btns button {
-  background-color: #3498db;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: background-color 0.2s;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
 }
 
 #modal-estado-cuenta .modal-btns button:hover {
-  background-color: #2980b9;
+    background-color: #2980b9;
 }
 
 #estado-cuenta-lista {
-  margin-top: 1rem;
+    margin-top: 1rem;
 }
 
 #estado-cuenta-lista .card {
-  background-color: #f9f9f9;
-  padding: 0.8rem;
-  border-radius: 8px;
-  margin-bottom: 0.8rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    background-color: #f9f9f9;
+    padding: 0.8rem;
+    border-radius: 8px;
+    margin-bottom: 0.8rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
 }
 
 #estado-cuenta-lista .card h4 {
-  margin: 0 0 0.3rem 0;
-  font-size: 1rem;
-  color: #2c3e50;
+    margin: 0 0 0.3rem 0;
+    font-size: 1rem;
+    color: #2c3e50;
 }
 
 #estado-cuenta-lista .card p {
-  margin: 0.2rem 0;
-  font-size: 0.9rem;
-  color: #555;
+    margin: 0.2rem 0;
+    font-size: 0.9rem;
+    color: #555;
 }
 
 #modal-estado-cuenta p {
-  font-size: 0.9rem;
-  color: #555;
+    font-size: 0.9rem;
+    color: #555;
 }
 
 
-
 /* ============================= */
-/* MODAL FACTURA PROFESIONAL */
+/* MODAL FACTURA PROFESIONAL (ÚNICO BLOQUE CORRECTO) */
 /* ============================= */
 #modal-factura {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-  padding: 1rem;
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 1rem;
 }
 
 #modal-factura .modal-content {
-  background-color: #fff;
-  padding: 1.5rem 1.5rem 2rem 1.5rem; /* más espacio abajo para botones */
-  border-radius: 12px;
-  width: 100%;
-  max-width: 400px; /* ancho tipo ticket */
-  max-height: 85vh;
-  overflow-y: auto;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-  font-family: monospace;
-  white-space: pre-wrap;
-  text-align: center;
-  line-height: 1.4;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-#factura-contenido {
-  flex: 1;
-  overflow-y: auto;
-  margin-bottom: 1.2rem;
-  font-size: 14px;
-  color: #333;
-}
-
-/* Botones dentro del modal de factura */
-#modal-factura .modal-btns {
-  display: flex;
-  justify-content: center;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
-}
-
-#modal-factura .modal-btns button {
-  background-color: #43cea2;
-  color: #fff;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  min-width: 120px;
-}
-
-#modal-factura .modal-btns button:hover {
-  background-color: #2ebd91;
-}
-
-/* ====== Responsive ====== */
-@media (max-width: 900px) {
-  #modal-factura .modal-content {
-    max-width: 360px;
-    font-size: 13px;
-  }
-
-  #modal-factura .modal-btns button {
-    min-width: 100px;
-    padding: 0.5rem 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  #modal-factura .modal-content {
-    width: 95%;
-    font-size: 12px;
-    padding: 1rem 1rem 1.5rem 1rem;
-  }
-
-  #modal-factura .modal-btns {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  #modal-factura .modal-btns button {
+    background-color: #fff;
+    padding: 1.5rem 1.5rem 2.2rem 1.5rem;
+    border-radius: 12px;
     width: 100%;
-    font-size: 0.95rem;
-    padding: 0.5rem;
-  }
-}
-
-/* ============================= */
-/* MODAL FACTURA PROFESIONAL LIMPIO Y OPTIMIZADO */
-/* ============================= */
-#modal-factura {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-  padding: 1rem;
-}
-
-#modal-factura .modal-content {
-  background-color: #fff;
-  padding: 1.5rem 1.5rem 2.2rem 1.5rem; /* espacio extra abajo para botones */
-  border-radius: 12px;
-  width: 100%;
-  max-width: 400px; /* ancho tipo ticket */
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start; /* los botones se quedan abajo */
-  overflow: hidden;
-  box-shadow: 0 8px 25px rgba(223, 0, 0, 0.3);
-  font-family: monospace;
-  white-space: pre-wrap;
-  text-align: center;
-  line-height: 1.4;
+    max-width: 400px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(223, 0, 0, 0.3);
+    font-family: monospace;
+    white-space: pre-wrap;
+    text-align: center;
+    line-height: 1.4;
 }
 
 /* Contenido del ticket */
 #factura-contenido {
-  flex: 1;
-  overflow-y: auto;
-  margin-bottom: 1.5rem;
-  font-size: 14px;
-  color: #333;
-  padding-right: 0.5rem;
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 1.5rem;
+    font-size: 14px;
+    color: #333;
+    padding-right: 0.5rem;
 }
 
 /* Botones dentro del modal */
 #modal-factura .modal-btns {
-  display: flex;
-  justify-content: center;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-  margin-top: auto;
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-top: auto;
 }
 
 #modal-factura .modal-btns button {
-  background-color: #43cea2;
-  color: #fff;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  min-width: 120px;
+    background-color: #43cea2;
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-width: 120px;
 }
 
 #modal-factura .modal-btns button:hover {
-  background-color: #2ebd91;
+    background-color: #2ebd91;
 }
 
 /* ============================= */
-/* RESPONSIVE ADAPTADO PARA MOVIL */
+/* RESPONSIVE ADAPTADO PARA MOVIL (del modal factura) */
 /* ============================= */
 @media (max-width: 900px) {
-  #modal-factura .modal-content {
-    max-width: 360px;
-    font-size: 13px;
-  }
+    #modal-factura .modal-content {
+        max-width: 360px;
+        font-size: 13px;
+    }
 
-  #modal-factura .modal-btns button {
-    min-width: 100px;
-    padding: 0.5rem 1rem;
-  }
+    #modal-factura .modal-btns button {
+        min-width: 100px;
+        padding: 0.5rem 1rem;
+    }
 }
 
 @media (max-width: 480px) {
-  #modal-factura .modal-content {
-    width: 95%;
-    font-size: 12px;
-    padding: 1rem 1rem 1.5rem 1rem;
-  }
+    #modal-factura .modal-content {
+        width: 95%;
+        font-size: 12px;
+        padding: 1rem 1rem 1.5rem 1rem;
+    }
 
-  #modal-factura .modal-btns {
-    flex-direction: column;
-    gap: 0.6rem;
-  }
+    #modal-factura .modal-btns {
+        flex-direction: column;
+        gap: 0.6rem;
+    }
 
-  #modal-factura .modal-btns button {
-    width: 100%;
-    font-size: 0.95rem;
-    padding: 0.5rem;
-  }
+    #modal-factura .modal-btns button {
+        width: 100%;
+        font-size: 0.95rem;
+        padding: 0.5rem;
+    }
 }
 
 

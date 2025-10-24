@@ -82,7 +82,21 @@ async function getAllProductos() {
 // ================================
 async function addFactura(factura) {
     try {
+        // 1️⃣ Guardar la factura normalmente
         const docRef = await addDoc(collection(db, "facturas"), factura);
+
+        // 2️⃣ Crear movimiento financiero inmediato para el cuadre
+        const movimiento = {
+            type: "ingreso",
+            concept: `Factura #${docRef.id} - ${factura?.cliente || "Venta general"}`,
+            monto: parseFloat(factura.total || 0),
+            date: new Date().toISOString().slice(0, 10),
+            timestamp: new Date()
+        };
+
+        await addDoc(collection(db, "transacciones_financieras"), movimiento);
+
+        console.log("✅ Factura y movimiento financiero registrados:", movimiento);
         return docRef.id;
     } catch (e) {
         console.error("Error al añadir factura: ", e);
@@ -92,7 +106,6 @@ async function addFactura(factura) {
 
 async function getAllFacturas() {
     try {
-        // Usamos query para ordenar por fecha, asumiendo que el campo es 'fechaFactura'
         const q = query(collection(db, "facturas"), orderBy("fechaFactura", "desc"));
         const snapshot = await getDocs(q);
         const facturas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -108,7 +121,21 @@ async function getAllFacturas() {
 // ================================
 async function addRecibo(recibo) {
     try {
+        // 1️⃣ Guardar el recibo normalmente
         const docRef = await addDoc(collection(db, "recibos"), recibo);
+
+        // 2️⃣ Crear movimiento financiero (puede ser ingreso o gasto)
+        const movimiento = {
+            type: recibo.tipo === "gasto" ? "gasto" : "ingreso",
+            concept: recibo.descripcion || "Recibo",
+            monto: parseFloat(recibo.monto || 0),
+            date: new Date().toISOString().slice(0, 10),
+            timestamp: new Date()
+        };
+
+        await addDoc(collection(db, "transacciones_financieras"), movimiento);
+
+        console.log("✅ Recibo y movimiento financiero registrados:", movimiento);
         return docRef.id;
     } catch (e) {
         console.error("Error al añadir recibo: ", e);
@@ -118,7 +145,6 @@ async function addRecibo(recibo) {
 
 async function getAllRecibos() {
     try {
-        // Usamos query para ordenar por fecha, asumiendo que el campo es 'fecha'
         const q = query(collection(db, "recibos"), orderBy("fecha", "desc"));
         const snapshot = await getDocs(q);
         const recibos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -128,6 +154,7 @@ async function getAllRecibos() {
         return [];
     }
 }
+
 
 // ================================
 // Referencias DOM
