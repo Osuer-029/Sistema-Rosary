@@ -12,6 +12,22 @@ body {
     line-height: 1.6;
 }
 
+
+#btn-volver {
+    background: white;
+    color: #43cea2;
+    border: none;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#btn-volver:hover {
+    background: #ffe4e8;
+}
+
 /* 2. Estilos del Encabezado (Profesional) */
 .cuadre-header {
     background-color: #007bff; /* Color primario azul */
