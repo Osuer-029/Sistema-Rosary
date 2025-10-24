@@ -30,7 +30,7 @@ body {
 
 /* 2. Estilos del Encabezado (Profesional) */
 .cuadre-header {
-    background-color: #007bff; /* Color primario azul */
+    background-color: #295026; /* Color primario azul */
     color: white;
     padding: 20px;
     text-align: center;
@@ -146,3 +146,5 @@ body {
         min-width: 150px;
     }
 }
+
+
