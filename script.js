@@ -5,37 +5,32 @@
 // **********************************
 // 1. INICIALIZACIÓN Y CONFIGURACIÓN DE FIREBASE
 // **********************************
-// CÓDIGO CORREGIDO: Usando las rutas completas del CDN de Firebase
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-analytics.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore.js";
 
-// ... (resto del código de configuración y CRUD de Firebase)
-
-// Tu configuración de la aplicación web (de la consola de Firebase)
+// Configuración Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyDi-yeyvgHQg0n2xAEeH_D-n4sx0OD3SSc",
-    authDomain: "sistema-anthony-7cea5.firebaseapp.com",
-    projectId: "sistema-anthony-7cea5",
-    storageBucket: "sistema-anthony-7cea5.firebasestorage.app",
-    messagingSenderId: "940908012115",
-    appId: "1:940908012115:web:204117d50beef619475ca6",
-    measurementId: "G-RZDC3CMSZQ"
+  apiKey: "AIzaSyBuKs7Nr9oDi1BTkuLm2acYdJv3XWxCQN8",
+  authDomain: "sistema-anthony-26b3a.firebaseapp.com",
+  projectId: "sistema-anthony-26b3a",
+  storageBucket: "sistema-anthony-26b3a.firebasestorage.app",
+  messagingSenderId: "529902521245",
+  appId: "1:529902521245:web:e6326ce36eb31497fa3d74",
+  measurementId: "G-QZS4JMEEC9"
 };
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app); // Opcional: para análisis
-const db = getFirestore(app); // 👈 **CLAVE: Inicializar Cloud Firestore**
-
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
 
 // ================================
-// CRUD Productos (usando Firestore)
+// CRUD Productos (colección "inventario")
 // ================================
 async function addProducto(producto) {
     try {
-        const docRef = await addDoc(collection(db, "productos"), producto);
+        const docRef = await addDoc(collection(db, "inventario"), producto);
         console.log("Producto guardado con ID: ", docRef.id);
         return docRef.id;
     } catch (e) {
@@ -46,7 +41,7 @@ async function addProducto(producto) {
 
 async function updateProducto(id, producto) {
     try {
-        const productoRef = doc(db, "productos", id);
+        const productoRef = doc(db, "inventario", id);
         await updateDoc(productoRef, producto);
         return true;
     } catch (e) {
@@ -57,7 +52,7 @@ async function updateProducto(id, producto) {
 
 async function deleteProducto(id) {
     try {
-        await deleteDoc(doc(db, "productos", id));
+        await deleteDoc(doc(db, "inventario", id));
         return true;
     } catch (e) {
         console.error("Error al eliminar producto: ", e);
@@ -67,7 +62,7 @@ async function deleteProducto(id) {
 
 async function getAllProductos() {
     try {
-        const productosCol = collection(db, "productos");
+        const productosCol = collection(db, "inventario");
         const snapshot = await getDocs(productosCol);
         const productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         return productos;
@@ -78,14 +73,11 @@ async function getAllProductos() {
 }
 
 // ================================
-// CRUD Facturas (usando Firestore)
+// CRUD Facturas
 // ================================
 async function addFactura(factura) {
     try {
-        // 1️⃣ Guardar la factura normalmente
         const docRef = await addDoc(collection(db, "facturas"), factura);
-
-        // 2️⃣ Crear movimiento financiero inmediato para el cuadre
         const movimiento = {
             type: "ingreso",
             concept: `Factura #${docRef.id} - ${factura?.cliente || "Venta general"}`,
@@ -93,9 +85,7 @@ async function addFactura(factura) {
             date: new Date().toISOString().slice(0, 10),
             timestamp: new Date()
         };
-
         await addDoc(collection(db, "transacciones_financieras"), movimiento);
-
         console.log("✅ Factura y movimiento financiero registrados:", movimiento);
         return docRef.id;
     } catch (e) {
@@ -116,112 +106,22 @@ async function getAllFacturas() {
     }
 }
 
-// ================================
-// CRUD Recibos (usando Firestore)
-// ================================
-async function addRecibo(recibo) {
-    try {
-        // 1️⃣ Guardar el recibo normalmente
-        const docRef = await addDoc(collection(db, "recibos"), recibo);
-
-        // 2️⃣ Crear movimiento financiero (puede ser ingreso o gasto)
-        const movimiento = {
-            type: recibo.tipo === "gasto" ? "gasto" : "ingreso",
-            concept: recibo.descripcion || "Recibo",
-            monto: parseFloat(recibo.monto || 0),
-            date: new Date().toISOString().slice(0, 10),
-            timestamp: new Date()
-        };
-
-        await addDoc(collection(db, "transacciones_financieras"), movimiento);
-
-        console.log("✅ Recibo y movimiento financiero registrados:", movimiento);
-        return docRef.id;
-    } catch (e) {
-        console.error("Error al añadir recibo: ", e);
-        throw e;
-    }
-}
-
-async function getAllRecibos() {
-    try {
-        const q = query(collection(db, "recibos"), orderBy("fecha", "desc"));
-        const snapshot = await getDocs(q);
-        const recibos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        return recibos;
-    } catch (e) {
-        console.error("Error al obtener recibos: ", e);
-        return [];
-    }
-}
 
 
 // ================================
 // Referencias DOM
 // ================================
 const listaProductos = document.getElementById("lista-productos");
-const btnAbrirAgregar = document.getElementById("btn-abrir-agregar");
-const modalAgregar = document.getElementById("agregar-producto");
-const btnCerrarAgregar = document.getElementById("btn-cerrar-agregar");
-const btnCancelarAgregar = document.getElementById("btn-cancelar-agregar");
-const btnAgregar = document.getElementById("btn-agregar");
-const buscador = document.getElementById("buscador"); // 👈 Ya estaba referenciado, ¡perfecto!
-
-const modalFacturacion = document.getElementById("facturacion");
-const btnCerrarFactura = document.getElementById("btn-cerrar-factura");
-const btnCancelarFactura = document.getElementById("btn-cancelar-factura");
-const btnFacturar = document.getElementById("btn-facturar");
-
-const modalConfirmar = document.getElementById("modal-confirmar");
-const btnConfirmarSi = document.getElementById("btn-confirmar-si");
-const btnConfirmarNo = document.getElementById("btn-confirmar-no");
-
-const modalRecibo = document.getElementById("recibo-caja");
-const btnRecibo = document.getElementById("btn-recibo");
-const btnCerrarRecibo = document.getElementById("btn-cerrar-recibo");
-const btnGuardarRecibo = document.getElementById("btn-guardar-recibo");
-const btnCancelarRecibo = document.getElementById("btn-cancelar-recibo");
-
-const modalHistorial = document.getElementById("historial-facturas");
-const btnHistorial = document.getElementById("btn-historial");
-const btnCerrarHistorial = document.getElementById("btn-cerrar-historial");
-const listaFacturasContainer = document.getElementById("lista-facturas");
-const listaRecibosContainer = document.getElementById("lista-recibos");
-
-// === Referencias correctas para los campos del modal de Facturación ===
-const inputCliente = document.getElementById("inputCliente");
-const metodoPagoSelect = document.getElementById("metodoPago");
-
-if (metodoPagoSelect) {
-    metodoPagoSelect.addEventListener("change", (e) => {
-        metodoSeleccionado = e.target.value;
-    });
-}
-
-let metodoSeleccionado = "Efectivo"; // valor por defecto
-
-// ================================
-// Estado local
-// ================================
-let productos = []; // 👈 ¡CLAVE! Aquí guardamos todos los productos de Firestore
-let editId = null;
-let productoAEliminar = null;
+const buscador = document.getElementById("buscador");
+const contenedorSeleccionados = document.getElementById("productos-seleccionados");
+let productos = [];
 let productosSeleccionados = [];
 
-// ================================
-// Utiles (Mismo código, sin cambios)
-// ================================
-function toBase64(file) {
-    return new Promise((resolve,reject)=>{
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = ()=>resolve(reader.result);
-        reader.onerror = err=>reject(err);
-    });
-}
 
+// ================================
+// Utilidades
+// ================================
 function mostrarMensajeVisual(texto, tipo = "success") {
-    // pequeño snackbar visual (no bloqueante)
     const msj = document.createElement("div");
     msj.className = `mensaje-flotante ${tipo}`;
     msj.textContent = texto;
@@ -234,650 +134,314 @@ function mostrarMensajeVisual(texto, tipo = "success") {
 }
 
 // ================================
-// Cargar / Mostrar Productos
+// Cargar productos en tiempo real desde "inventario"
 // ================================
-async function cargarProductos() {
-    // Ahora llama a la versión de Firestore
-    productos = await getAllProductos(); 
-    mostrarProductos(productos); // Muestra todos los productos al cargar
-}
+function cargarProductosRealtime() {
+    const productosCol = collection(db, "inventario");
 
-// ================================
-// Lógica del Buscador (NUEVO)
-// ================================
-if (buscador) {
-    buscador.addEventListener("input", filtrarProductos);
-}
-
-function filtrarProductos() {
-    const textoBusqueda = buscador.value.toLowerCase().trim();
-    
-    // Si no hay texto, muestra todos los productos
-    if (!textoBusqueda) {
+    onSnapshot(productosCol, (snapshot) => {
+        productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         mostrarProductos(productos);
-        return;
-    }
-
-    // Filtra el array 'productos' global
-    const productosFiltrados = productos.filter(p => {
-        const nombre = (p.nombre || "").toLowerCase();
-        const descripcion = (p.descripcion || "").toLowerCase();
-        
-        // Búsqueda por nombre o descripción
-        return nombre.includes(textoBusqueda) || descripcion.includes(textoBusqueda);
+        console.log("Productos cargados:", productos); // debug
+    }, (error) => {
+        console.error("Error escuchando productos:", error);
     });
-
-    mostrarProductos(productosFiltrados);
 }
 
 // ================================
-// Mostrar productos en la lista principal (Mismo código, sin cambios lógicos)
+// Mostrar productos en pantalla
+// ================================
+// ================================
+// Mostrar productos disponibles (compactos y adaptados)
 // ================================
 function mostrarProductos(lista) {
-    listaProductos.innerHTML = "";
+  listaProductos.innerHTML = "";
+  lista.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "producto-card";
+    card.innerHTML = `
+      <img src="${p.imagen || 'https://via.placeholder.com/100'}" alt="${p.nombre}">
+      <h4>${p.nombre || 'Sin nombre'}</h4>
+      <p>RD$ ${Number(p.precio || 0).toFixed(2)}</p>
+    `;
+    listaProductos.appendChild(card);
 
-    lista.forEach(p => {
-        const div = document.createElement("div");
-        div.classList.add("producto");
-        div.innerHTML = `
-            ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}">` : ""}
-            <h3>${p.nombre || 'Sin nombre'}</h3>
-            <p>${p.descripcion || ''}</p>
-            <p>RD$ ${Number(p.precio).toFixed(2)}</p>
-            <p>Stock: ${p.stock !== undefined ? p.stock : '-'}</p>
-            <div class="botones-principal">
-                <button class="btn-editar">✏️ Editar</button>
-                <button class="btn-eliminar">🗑️ Eliminar</button>
-            </div>
-        `;
-        listaProductos.appendChild(div);
-
-        // Clic en producto -> agrega a factura (pero evita el click si viene de un botón)
-        div.addEventListener("click", (e) => {
-            // Asegurarse de que el click no provenga de un botón dentro
-            if (e.target.tagName !== 'BUTTON' && e.target.closest('.botones-principal') === null) {
-                productosSeleccionados.push(Object.assign({}, p));
-                modalFacturacion.style.display = "flex";
-                mostrarFactura();
-            }
-        });
-
-        // Botón Editar
-        div.querySelector(".btn-editar").addEventListener("click", e => {
-            e.stopPropagation();
-            editarProducto(p);
-        });
-
-        // Botón Eliminar
-        div.querySelector(".btn-eliminar").addEventListener("click", e => {
-            e.stopPropagation();
-            productoAEliminar = p;
-            modalConfirmar.style.display = "flex";
-        });
+    card.addEventListener("click", () => {
+      productosSeleccionados.push(p);
+      mostrarProductosSeleccionados(productosSeleccionados);
+      mostrarMensajeVisual(`✅ ${p.nombre} agregado`, "success");
     });
-}
-
-// ... (resto de las funciones: editarProducto, modales de Agregar/Eliminar, Facturación, Recibo, Historial, Imprimir)
-
-// ================================
-// Función para abrir modal de edición (Mismo código, sin cambios)
-// ================================
-function editarProducto(producto) {
-    editId = producto.id; // guardamos el id real para update
-    document.getElementById("nombre").value = producto.nombre || "";
-    document.getElementById("descripcion").value = producto.descripcion || "";
-    document.getElementById("precio").value = producto.precio || "";
-    document.getElementById("stock").value = producto.stock || "";
-    document.getElementById("imagen").value = ""; // no cargamos imagen por seguridad
-    modalAgregar.style.display = "flex";
+  });
 }
 
 
-// ================================
-// Modal Agregar Producto (Mismo código, sin cambios)
-// ================================
-if (btnAbrirAgregar) btnAbrirAgregar.addEventListener("click", () => {
-    editId = null;
-    document.getElementById("nombre").value = "";
-    document.getElementById("descripcion").value = "";
-    document.getElementById("precio").value = "";
-    document.getElementById("stock").value = "";
-    document.getElementById("imagen").value = "";
-    modalAgregar.style.display = "flex";
+const btnPrev = document.getElementById("prev");
+const btnNext = document.getElementById("next");
+
+// Variables para controlar scroll del carrusel
+const scrollAmount = 350;
+
+btnNext.addEventListener("click", () => {
+    listaProductos.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 });
 
-if (btnCerrarAgregar) btnCerrarAgregar.addEventListener("click", () => modalAgregar.style.display = "none");
-if (btnCancelarAgregar) btnCancelarAgregar.addEventListener("click", () => modalAgregar.style.display = "none");
-
-if (btnAgregar) btnAgregar.addEventListener("click", async () => {
-    const nombre = document.getElementById("nombre").value.trim();
-    const descripcion = document.getElementById("descripcion").value.trim();
-    const precio = parseFloat(document.getElementById("precio").value);
-    const stock = parseInt(document.getElementById("stock").value);
-    const file = document.getElementById("imagen").files[0];
-
-    if (isNaN(precio) || isNaN(stock)) {
-        alert("Debe ingresar precio y stock válidos");
-        return;
-    }
-
-    let imagenBase64 = "";
-    if (file) imagenBase64 = await toBase64(file);
-
-    const productoData = { nombre, descripcion, precio, stock, imagen: imagenBase64 };
-
-    if (editId) {
-        // Llama a la nueva función updateProducto de Firestore
-        await updateProducto(editId, productoData);
-    } else {
-        // Llama a la nueva función addProducto de Firestore
-        await addProducto(productoData);
-    }
-
-    modalAgregar.style.display = "none";
-    await cargarProductos();
+btnPrev.addEventListener("click", () => {
+    listaProductos.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
 });
 
 // ================================
-// Eliminar Producto (confirmación) (Mismo código, sin cambios)
+// Mostrar productos escaneados (estilo lista supermercado)
 // ================================
-if (btnConfirmarSi) btnConfirmarSi.addEventListener("click", async () => {
-    if (productoAEliminar) {
-        // Llama a la nueva función deleteProducto de Firestore
-        await deleteProducto(productoAEliminar.id); 
-        productoAEliminar = null;
-        await cargarProductos();
-    }
-    modalConfirmar.style.display = "none";
-});
-if (btnConfirmarNo) btnConfirmarNo.addEventListener("click", () => {
-    productoAEliminar = null;
-    modalConfirmar.style.display = "none";
-});
-
 // ================================
-// Facturación (selección automática y modal) (Mismo código, sin cambios)
+// Mostrar productos seleccionados con control de cantidad y total
 // ================================
-function seleccionarProducto(producto) {
-    // Agregar copia para evitar referencias compartidas
-    productosSeleccionados.push(Object.assign({}, producto));
-    mostrarFactura();
-
-    // Si es el primer producto, abrimos modal automáticamente
-    if (productosSeleccionados.length === 1) {
-        modalFacturacion.style.display = "flex";
-    } else {
-        // si ya está abierto, mostramos un mensaje corto
-        mostrarMensajeVisual(`${producto.nombre || 'Producto'} agregado`, "success");
-    }
-}
-
-// Mostrar factura con todos los productos seleccionados (Mismo código, sin cambios)
-function mostrarFactura() {
-    const panel = modalFacturacion.querySelector(".fact-panel");
-    if (!panel) return;
-
-    const oldList = panel.querySelector(".lista-seleccion");
-    if (oldList) oldList.remove();
-
-    const lista = document.createElement("div");
-    lista.classList.add("lista-seleccion");
-
+function mostrarProductosSeleccionados(lista) {
+    contenedorSeleccionados.innerHTML = "";
     let total = 0;
 
-    productosSeleccionados.forEach((p, i) => {
-        total += Number(p.precio);
-        const item = document.createElement("div");
-        item.classList.add("producto-cuadro");
-        item.innerHTML = `
-            ${p.imagen ? `<img src="${p.imagen}" class="producto-img" alt="Imagen producto">` : ""}
+    // Agrupar productos por id para contar cantidad
+    const productosAgrupados = {};
+    lista.forEach(p => {
+        if (productosAgrupados[p.id]) {
+            productosAgrupados[p.id].cantidad += 1;
+        } else {
+            productosAgrupados[p.id] = { ...p, cantidad: 1 };
+        }
+    });
+
+    Object.values(productosAgrupados).forEach(p => {
+        const div = document.createElement("div");
+        div.className = "producto-cuadro";
+        div.innerHTML = `
             <div class="producto-info">
-                <p><strong>${p.nombre}</strong></p>
-                <p>${p.descripcion || ""}</p>
-                <p>RD$ ${Number(p.precio).toFixed(2)}</p>
+                <img src="${p.imagen}" alt="${p.nombre}" class="producto-mini">
+                <div class="producto-detalles">
+                    <span class="nombre">${p.nombre}</span>
+                    <span class="detalle">RD$ ${p.precio.toFixed(2)}</span>
+                </div>
             </div>
-            <div class="fact-controls">
-                <button data-index="${i}" class="btn-quitar">❌ Quitar</button>
+            <div class="cantidad-control">
+                <button class="btn-menos">➖</button>
+                <span class="cantidad">${p.cantidad}</span>
+                <button class="btn-mas">➕</button>
+                <button class="btn-quitar">❌</button>
             </div>
         `;
-        lista.appendChild(item);
+        contenedorSeleccionados.appendChild(div);
+
+        total += p.precio * p.cantidad;
+
+        // Botones de control de cantidad
+        const btnMas = div.querySelector(".btn-mas");
+        const btnMenos = div.querySelector(".btn-menos");
+        const btnQuitar = div.querySelector(".btn-quitar");
+
+        btnMas.addEventListener("click", () => {
+            productosSeleccionados.push(p);
+            mostrarProductosSeleccionados(productosSeleccionados);
+        });
+
+        btnMenos.addEventListener("click", () => {
+            const index = productosSeleccionados.findIndex(prod => prod.id === p.id);
+            if (index !== -1) productosSeleccionados.splice(index, 1);
+            mostrarProductosSeleccionados(productosSeleccionados);
+        });
+
+        btnQuitar.addEventListener("click", () => {
+            productosSeleccionados = productosSeleccionados.filter(prod => prod.id !== p.id);
+            mostrarProductosSeleccionados(productosSeleccionados);
+        });
     });
 
+    // Mostrar total y botón imprimir
     const totalDiv = document.createElement("div");
-    totalDiv.classList.add("total");
-    totalDiv.textContent = `Total: RD$ ${total.toFixed(2)}`;
-    lista.appendChild(totalDiv);
+    totalDiv.className = "total-pago";
+    totalDiv.innerHTML = `
+        <strong>Total: RD$ ${total.toFixed(2)}</strong>
+        <button id="btnImprimirTicket" class="btn-imprimir">🧾 Imprimir Ticket</button>
+    `;
+    contenedorSeleccionados.appendChild(totalDiv);
 
-    // Botón para agregar más productos
-    const btnSeguir = document.createElement("button");
-    btnSeguir.textContent = "➕ Agregar más productos";
-    btnSeguir.classList.add("btn-mas");
-    btnSeguir.addEventListener("click", () => {
-        modalFacturacion.style.display = "none";
-        // Mostrar los productos que están en el array global 'productos'
-        mostrarProductos(productos); 
-        document.getElementById("productos").scrollIntoView({ behavior: "smooth" });
-    });
-    lista.appendChild(btnSeguir);
+    document.getElementById("btnImprimirTicket").addEventListener("click", async () => {
+    const listaParaFactura = Object.values(productosAgrupados);
 
-    panel.appendChild(lista);
+    // Calcular total
+    let total = listaParaFactura.reduce((sum, p) => sum + p.precio * p.cantidad, 0);
 
-    // Listeners para quitar productos
-    lista.querySelectorAll(".btn-quitar").forEach(btn => {
-        btn.addEventListener("click", e => {
-            const idx = Number(e.target.dataset.index);
-            productosSeleccionados.splice(idx, 1);
-            mostrarFactura();
-        });
-    });
-}
-
-
-
-// Inicializamos productos disponibles al cargar página
-// **Se asegura que Firestore esté inicializado**
-document.addEventListener('DOMContentLoaded', cargarProductos);
-
-
-// Cerrar modal facturación (botones) (Mismo código, sin cambios)
-if (btnCerrarFactura) btnCerrarFactura.addEventListener("click", () => { modalFacturacion.style.display = "none"; });
-if (btnCancelarFactura) btnCancelarFactura.addEventListener("click", () => { productosSeleccionados = []; mostrarFactura(); modalFacturacion.style.display = "none"; });
-
-// ================================
-// Generar Factura -> guarda + recibo + ticket pdf (Mismo código, sin cambios lógicos)
-// ================================
-if (btnFacturar) btnFacturar.addEventListener("click", async () => {
-    if (productosSeleccionados.length === 0) {
-        mostrarMensajeVisual("No hay productos seleccionados.", "error");
-        return;
-    }
-
-    const cliente = (inputCliente && inputCliente.value.trim()) ? inputCliente.value.trim() : "Consumidor Final";
-    const metodoPago = (metodoPagoSelect && metodoPagoSelect.value) ? metodoPagoSelect.value : metodoSeleccionado;
-    const numeroFactura = "FAC-" + Date.now();
-    const fechaFactura = new Date().toISOString(); 
-    const total = productosSeleccionados.reduce((acc, p) => acc + Number(p.precio), 0);
-
-    const facturaObj = {
-        numeroFactura,
-        fechaFactura,
-        productos: productosSeleccionados,
-        total,
-        cliente,
-        metodoPago,
-        fechaFacturaLocal: new Date().toLocaleString("es-DO", { hour12: true }) 
+    // Crear objeto factura
+    const factura = {
+        cliente: "Cliente general", // o el nombre que ingreses en inputCliente
+        productos: listaParaFactura.map(p => ({
+            nombre: p.nombre,
+            precio: p.precio,
+            cantidad: p.cantidad
+        })),
+        total: total,
+        fechaFactura: new Date().toISOString().slice(0, 10)
     };
 
-    try {
-        // 1️⃣ Guardar factura en Firestore
-        await addFactura(facturaObj);
+    // Guardar en Firestore
+    await addFactura(factura);
 
-        // 2️⃣ Actualizar stock automáticamente
-        for (let p of productosSeleccionados) {
-            if (p.stock !== undefined && p.id) {
-                let nuevoStock = p.stock - 1; // disminuir en 1 por cada unidad facturada
-                if (nuevoStock < 0) nuevoStock = 0;
-                await updateProducto(p.id, { stock: nuevoStock });
-            }
-        }
+    // Imprimir ticket
+    imprimirTicket(listaParaFactura);
 
-        // 3️⃣ Crear recibo automático
-        const reciboObj = {
-            fecha: new Date().toISOString(),
-            cliente,
-            monto: total,
-            concepto: `Pago factura ${numeroFactura}`,
-            origenFactura: numeroFactura,
-            fechaLocal: new Date().toLocaleString("es-DO", { hour12: true })
-        };
-        await addRecibo(reciboObj);
-
-        // 4️⃣ Mostrar mensaje de éxito
-        mostrarMensajeVisual("✅ Factura generada y stock actualizado", "success");
-
-        // 5️⃣ Generar y descargar PDF directamente
-        generarFacturaTicket(facturaObj);
-
-        // 6️⃣ Limpiar selección y cerrar modal
-        productosSeleccionados = [];
-        mostrarFactura();
-        modalFacturacion.style.display = "none";
-
-        // 7️⃣ Recargar historial y productos
-        await cargarHistorial();
-        await cargarProductos();
-
-    } catch (err) {
-        console.error("Error al facturar:", err);
-        mostrarMensajeVisual("Error al generar la factura (revisa consola)", "error");
-    }
+    // Limpiar productos seleccionados
+    productosSeleccionados = [];
+    mostrarProductosSeleccionados(productosSeleccionados);
+    mostrarMensajeVisual("✅ Factura registrada y productos limpiados", "success");
 });
 
-
-
-// ================================
-// Recibo de Caja (modal manual) (Mismo código, sin cambios lógicos)
-// ================================
-if (btnRecibo) btnRecibo.addEventListener("click", () => {
-    document.getElementById("recibo-cliente").value = "";
-    document.getElementById("recibo-monto").value = "";
-    document.getElementById("recibo-concepto").value = "";
-    modalRecibo.style.display = "flex";
-});
-if (btnCerrarRecibo) btnCerrarRecibo.addEventListener("click", () => modalRecibo.style.display = "none");
-if (btnCancelarRecibo) btnCancelarRecibo.addEventListener("click", () => modalRecibo.style.display = "none");
-
-if (btnGuardarRecibo) btnGuardarRecibo.addEventListener("click", async () => {
-    const cliente = document.getElementById("recibo-cliente").value.trim();
-    const monto = parseFloat(document.getElementById("recibo-monto").value);
-    const concepto = document.getElementById("recibo-concepto").value.trim();
-
-    if (!cliente || isNaN(monto)) {
-        alert("Debe completar el cliente y el monto.");
-        return;
-    }
-
-    const recibo = {
-        fecha: new Date().toISOString(),
-        cliente,
-        monto,
-        concepto,
-        fechaLocal: new Date().toLocaleString("es-DO")
-    };
-
-    // Llama a la nueva función addRecibo de Firestore
-    await addRecibo(recibo); 
-    modalRecibo.style.display = "none";
-    mostrarMensajeVisual("✅ Recibo guardado correctamente", "success");
-    await cargarHistorial();
-});
-
-// ================================
-// Historial (facturas + recibos) — render estilizado (Mismo código, sin cambios lógicos)
-// ================================
-// ================================
-// Cargar historial de facturas y recibos (optimizado)
-// ================================
-async function cargarHistorial() {
-    listaFacturasContainer.innerHTML = "";
-    listaRecibosContainer.innerHTML = "";
-
-    // Ahora llama a la versión de Firestore
-    const facturas = await getAllFacturas(); 
-    const recibos = await getAllRecibos();
-
-    // ======== Crear filtro de fechas ========
-    const filtroDiv = document.createElement("div");
-    filtroDiv.classList.add("filtro-fecha");
-    filtroDiv.innerHTML = `
-        <div class="filtro-fecha-inner">
-            <label>Desde: <input type="text" id="fecha-desde" placeholder="Selecciona fecha"></label>
-            <label>Hasta: <input type="text" id="fecha-hasta" placeholder="Selecciona fecha"></label>
-            <button id="btn-filtrar-fecha">Filtrar</button>
-            <button id="btn-ver-todo">Ver todo</button>
-        </div>
-    `;
-    listaFacturasContainer.appendChild(filtroDiv);
-
-    // ===== Inicializar Flatpickr sobre los inputs del filtro =====
-    const inputDesde = filtroDiv.querySelector("#fecha-desde");
-    const inputHasta = filtroDiv.querySelector("#fecha-hasta");
-    flatpickr(inputDesde, { dateFormat: "Y-m-d", allowInput: true });
-    flatpickr(inputHasta, { dateFormat: "Y-m-d", allowInput: true });
-
-    // ===== Estilos internos (responsivo) =====
-    const style = document.createElement("style");
-    style.textContent = `
-        .filtro-fecha-inner { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center; }
-        .filtro-fecha-inner label { display:flex; flex-direction:column; font-size:14px; }
-        .filtro-fecha-inner input { padding:8px; border-radius:6px; border:1px solid #ccc; }
-        .filtro-fecha-inner button { padding:6px 12px; border:none; border-radius:6px; background:#3498db; color:#fff; cursor:pointer; transition:0.2s; }
-        .filtro-fecha-inner button:hover { background:#2980b9; }
-        @media (max-width:600px) { .filtro-fecha-inner { flex-direction:column; align-items:flex-start; } }
-    `;
-    document.head.appendChild(style);
-
-    // ===== Mensaje inicial =====
-    const mensajeInicial = document.createElement("p");
-    mensajeInicial.textContent = "Seleccione una fecha o rango para ver facturas.";
-    listaFacturasContainer.appendChild(mensajeInicial);
-    listaRecibosContainer.innerHTML = "";
-
-    // ===== Función de filtrado =====
-    function filtrarYMostrar() {
-        const desdeVal = inputDesde.value;
-        const hastaVal = inputHasta.value;
-
-        // Si no hay ninguna fecha seleccionada, mostrar solo mensaje inicial
-        if (!desdeVal && !hastaVal) {
-            listaFacturasContainer.innerHTML = "";
-            listaFacturasContainer.appendChild(filtroDiv);
-            listaFacturasContainer.appendChild(mensajeInicial);
-            listaRecibosContainer.innerHTML = "";
-            return;
-        }
-
-        // Usamos las fechas ISO para la comparación
-        const desde = desdeVal ? new Date(desdeVal + "T00:00:00.000Z") : null;
-        const hasta = hastaVal ? new Date(hastaVal + "T23:59:59.999Z") : null;
-
-        // ===== FILTRAR FACTURAS =====
-        const filtradasFacturas = facturas.filter(f => {
-            // Usar la fecha ISO para la comparación
-            const fecha = new Date(f.fechaFactura); 
-            return (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
-        });
-
-        // ===== FILTRAR RECIBOS =====
-        const filtradosRecibos = recibos.filter(r => {
-            // Usar la fecha ISO para la comparación
-            const fecha = new Date(r.fecha); 
-            return (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
-        });
-
-        mostrarFacturasFiltradas(filtradasFacturas);
-        mostrarRecibosFiltrados(filtradosRecibos);
-    }
-
-    // ===== Botones de filtrado =====
-    const btnFiltrar = filtroDiv.querySelector("#btn-filtrar-fecha");
-    const btnVerTodo = filtroDiv.querySelector("#btn-ver-todo");
-
-    btnFiltrar.addEventListener("click", filtrarYMostrar);
-    btnVerTodo.addEventListener("click", () => {
-        mostrarFacturasFiltradas(facturas);
-        mostrarRecibosFiltrados(recibos);
-    });
 }
 
 
-// ahora sí inicializar flatpickr
-flatpickr("#fecha-desde", { dateFormat: "Y-m-d", allowInput: true });
-flatpickr("#fecha-hasta", { dateFormat: "Y-m-d", allowInput: true });
-
-
-// Función para mostrar recibos filtrados (Mismo código, sin cambios)
-function mostrarRecibosFiltrados(recibos) {
-    listaRecibosContainer.innerHTML = "";
-    if (!recibos.length) {
-        listaRecibosContainer.innerHTML = `<p>No hay recibos registrados.</p>`;
-        return;
-    }
-
-    // Ahora se usa el campo 'fecha' de Firestore para ordenar por la fecha real
-    recibos.sort((a,b) => (new Date(b.fecha)).getTime() - (new Date(a.fecha)).getTime());
-
-    recibos.forEach(r => {
-        const div = document.createElement("div");
-        div.classList.add("item-historial");
-        div.innerHTML = `
-            <div style="flex:1">
-                <p><strong>Cliente:</strong> ${r.cliente} <span style="color:#666">- ${r.fechaLocal || r.fecha}</span></p>
-                <p style="margin-top:6px"><strong>Monto:</strong> RD$ ${Number(r.monto).toFixed(2)}</p>
-                ${r.concepto ? `<p style="margin-top:6px"><strong>Concepto:</strong> ${r.concepto}</p>` : ""}
-            </div>
-            <div class="acciones-historial">
-                <button class="btn-ver">Ver</button>
-            </div>
-        `;
-        div.querySelector(".btn-ver").addEventListener("click", () => imprimirRecibo(r));
-        listaRecibosContainer.appendChild(div);
-    });
-}
-
-
-// Función auxiliar para mostrar facturas filtradas (Mismo código, sin cambios)
-function mostrarFacturasFiltradas(facturas) {
-    const filtroDiv = listaFacturasContainer.querySelector("div");
-    listaFacturasContainer.innerHTML = "";
-    if (filtroDiv) listaFacturasContainer.appendChild(filtroDiv);
-
-    if (!facturas.length) {
-        listaFacturasContainer.innerHTML += `<p>No hay facturas para esas fechas.</p>`;
-        return;
-    }
-
-    // Ahora se usa el campo 'fechaFactura' de Firestore para ordenar por la fecha real
-    facturas.sort((a,b) => (new Date(b.fechaFactura)).getTime() - (new Date(a.fechaFactura)).getTime());
-
-    facturas.forEach(f => {
-        const div = document.createElement("div");
-        div.classList.add("item-historial");
-        const totalFormatted = Number(f.total).toFixed(2);
-        div.innerHTML = `
-            <div style="flex:1">
-                <p><strong>${f.numeroFactura}</strong> <span style="color:#666">- ${f.fechaFacturaLocal || f.fechaFactura}</span></p>
-                <p style="margin-top:6px"><strong>Cliente:</strong> ${f.cliente || "Consumidor Final"} • <strong>Método:</strong> ${f.metodoPago || "-"}</p>
-                <p style="margin-top:6px"><strong>Total:</strong> RD$ ${totalFormatted}</p>
-            </div>
-            <div class="acciones-historial">
-                <button class="btn-ver">Ver</button>
-                <button class="btn-recibo">Recibo</button>
-            </div>
-        `;
-        div.querySelector(".btn-ver").addEventListener("click", () => imprimirFacturaHTML(f));
-        div.querySelector(".btn-recibo").addEventListener("click", () => imprimirRecibo(f));
-        listaFacturasContainer.appendChild(div);
-    });
-}
-
-
-
-// abrir / cerrar historial (Mismo código, sin cambios)
-if (btnHistorial) btnHistorial.addEventListener("click", async () => {
-    await cargarHistorial();
-    modalHistorial.style.display = "flex";
-});
-if (btnCerrarHistorial) btnCerrarHistorial.addEventListener("click", () => modalHistorial.style.display = "none");
-
-// ================================
-// Imprimir Factura / Recibo (HTML fallback) (Mismo código, sin cambios)
-// ================================
-function imprimirFacturaHTML(f) {
-    const printWindow = window.open("", "_blank");
-    printWindow.document.write(`
-        <html><head><title>${f.numeroFactura}</title>
-        <style>body{font-family:Arial;padding:12px} .producto{border-top:1px dashed #ccc;padding:6px 0}</style>
-        </head><body>
-        <h2 style="text-align:center">Heladería Rosary</h2>
-        <p><strong>No. Factura:</strong> ${f.numeroFactura}</p>
-        <p><strong>Fecha:</strong> ${f.fechaFacturaLocal || f.fechaFactura}</p>
-        <p><strong>Cliente:</strong> ${f.cliente || 'Consumidor Final'}</p>
-        <p><strong>Método:</strong> ${f.metodoPago || '-'}</p>
-        <hr>
-        ${f.productos.map(p=>`<div class="producto"><p><strong>${p.nombre || ''}</strong></p><p>RD$ ${Number(p.precio).toFixed(2)}</p></div>`).join('')}
-        <hr>
-        <p style="text-align:right"><strong>Total: RD$ ${Number(f.total).toFixed(2)}</strong></p>
-        <p style="text-align:center;font-style:italic">¡Gracias por su compra!</p>
-        </body></html>
-    `);
-    // dar tiempo para cargar
-    printWindow.onload = () => { printWindow.print(); printWindow.close(); };
-}
-
-// imprimir recibo (detecta factura o recibo) (Mismo código, sin cambios)
-function imprimirRecibo(obj) {
-    let isFactura = Boolean(obj && obj.numeroFactura);
-    let titulo = isFactura ? `Recibo - ${obj.numeroFactura}` : `Recibo de Caja`;
-    let cliente = isFactura ? (obj.cliente || "Consumidor Final") : (obj.cliente || "");
-    let fecha = isFactura ? (obj.fechaFacturaLocal || obj.fechaFactura || "") : (obj.fechaLocal || obj.fecha || "");
-    let monto = isFactura ? Number(obj.total).toFixed(2) : Number(obj.monto).toFixed(2);
-    let metodo = isFactura ? (obj.metodoPago || "") : "";
-    let concepto = isFactura ? `Pago factura ${obj.numeroFactura}` : (obj.concepto || "");
-
-    const printWindow = window.open("", "_blank");
-    printWindow.document.write(`
-        <html>
-        <head>
-            <title>${titulo}</title>
-            <style>body{font-family:Arial;padding:12px}.recibo{border:1px solid #000;padding:10px}</style>
-        </head>
-        <body>
-            <div class="recibo">
-                <h2 style="text-align:center">Recibo de Caja</h2>
-                ${isFactura ? `<p><strong>No. Factura:</strong> ${obj.numeroFactura}</p>` : ""}
-                <p><strong>Fecha:</strong> ${fecha}</p>
-                <p><strong>Cliente:</strong> ${cliente}</p>
-                ${metodo ? `<p><strong>Método de pago:</strong> ${metodo}</p>` : ""}
-                ${concepto ? `<p><strong>Concepto:</strong> ${concepto}</p>` : ""}
-                <hr>
-                <p><strong>Monto recibido:</strong> RD$ ${monto}</p>
-                <div style="margin-top:12px">Firma Cajero: ____________</div>
-                <div style="margin-top:6px">Firma Cliente: ____________</div>
-            </div>
-        </body>
-        </html>
-    `);
-    printWindow.onload = () => { printWindow.print(); printWindow.close(); };
-}
-
-// ================================
-// Generar ticket estilo supermercado (jsPDF) (Mismo código, sin cambios)
-// ================================
-function generarFacturaTicket(f) {
+function imprimirTicket(listaProductos, cliente = {nombre: "General", telefono: "No disponible"}) {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "mm", format: [80, 200] });
+    const doc = new jsPDF({ unit: "pt", format: [300, 1400] });
+    let y = 20;
 
-    let y = 8;
-    doc.setFont("courier", "bold");
+    // ENCABEZADO TIPO SERVICIOS
+    doc.setFont("Courier", "bold");
     doc.setFontSize(12);
-    doc.text("Heladería Rosary", 40, y, { align: "center" });
-    y += 5;
-    doc.setFont("courier", "normal");
-    doc.setFontSize(8);
-    doc.text(`Factura: ${f.numeroFactura}`, 6, y); y += 4;
-    doc.text(`Fecha: ${f.fechaFacturaLocal || f.fechaFactura}`, 6, y); y += 4;
-    doc.text(`Cliente: ${f.cliente}`, 6, y); y += 4;
-    doc.text(`Método: ${f.metodoPago}`, 6, y); y += 4;
-    doc.line(6, y, 74, y); y += 5;
+    doc.text("HELADERÍA ROSARY", 150, y, { align: "center" }); y += 18;
+    doc.setFont("Courier", "normal");
+    doc.setFontSize(9);
+    doc.text("Villa González - Santiago", 150, y, { align: "center" }); y += 12;
+    doc.text("Tel: +1 (809) 790-4593", 150, y, { align: "center" }); y += 12;
 
-    // encabezado tabla
-    doc.text("Producto", 6, y);
-    doc.text("Precio", 66, y, { align: "right" });
-    y += 4;
-    doc.line(6, y, 74, y); y += 5;
+    doc.setFont("Courier", "bold");
+    doc.setFontSize(10);
+    doc.text("RECIBO DE PRODUCTOS", 150, y, { align: "center" }); y += 15;
+    doc.setFont("Courier", "normal");
+    doc.setFontSize(9);
 
-    f.productos.forEach(p => {
-        const name = (p.nombre || "Producto").substring(0, 28);
-        doc.text(name, 6, y);
-        doc.text(`RD$${Number(p.precio).toFixed(2)}`, 66, y, { align: "right" });
-        y += 5;
-        if (y > 195) { doc.addPage([80, 200]); y = 10; }
+    const fecha = new Date();
+    const fechaStr = fecha.toLocaleDateString('es-ES');
+    const horaStr = fecha.toLocaleTimeString('es-ES');
+    doc.text(`Fecha: ${fechaStr}   Hora: ${horaStr}`, 150, y, { align: "center" }); y += 15;
+    doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
+
+
+    // ENCABEZADO DE PRODUCTOS
+    doc.setFont("Courier", "bold");
+    doc.text("Producto", 15, y);
+    doc.text("Cant", 140, y, { align: "center" });
+    doc.text("P.Unit", 190, y, { align: "center" });
+    doc.text("Total", 270, y, { align: "right" });
+    y += 12;
+    doc.setFont("Courier", "normal");
+    doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
+
+    // LISTA DE PRODUCTOS
+    let total = 0;
+    listaProductos.forEach(p => {
+        const nombre = p.nombre.length > 16 ? p.nombre.slice(0,16)+"..." : p.nombre;
+        const cant = p.cantidad || 1;
+        const precioUnit = p.precio.toFixed(2);
+        const subtotal = (p.precio * cant).toFixed(2);
+
+        doc.text(nombre.padEnd(16), 15, y);
+        doc.text(String(cant).padStart(3), 140, y, { align: "center" });
+        doc.text(precioUnit.padStart(6), 190, y, { align: "center" });
+        doc.text(subtotal.padStart(6), 270, y, { align: "right" });
+
+        total += p.precio * cant;
+        y += 14;
     });
 
-    doc.line(6, y, 74, y); y += 6;
-    doc.text(`Total: RD$ ${Number(f.total).toFixed(2)}`, 66, y, { align: "right" }); y += 5;
-    doc.text("¡Gracias por su compra!", 40, y + 5, { align: "center" });
+    doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
 
-    // ⚡ Aquí hacemos la descarga en la misma ventana
-    const pdfBlob = doc.output('blob');  // generamos un Blob
-    const url = URL.createObjectURL(pdfBlob);
+    // TOTAL
+    doc.setFont("Courier", "bold");
+    doc.text(`TOTAL: RD$ ${total.toFixed(2)}`, 150, y, { align: "center" }); y += 20;
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Factura-${f.numeroFactura}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // PIE DE TICKET
+    doc.setFont("Courier", "normal");
+    doc.setFontSize(9);
+    doc.text("¡Gracias por preferirnos!", 150, y, { align: "center" }); y += 12;
+    doc.text("Vuelva pronto!", 150, y, { align: "center" }); y += 12;
+    doc.text("----------------------------------------", 150, y, { align: "center" });
+
+    // GUARDAR PDF
+    const timestamp = fecha.getTime();
+    doc.save(`ticket-${timestamp}.pdf`);
 }
+
+
+
+
+
+
+// ================================
+// Escáner de código de barras optimizado (para pistola lectora)
+// ================================
+
+// Campo invisible para capturar el escaneo
+const inputScanner = document.createElement("input");
+inputScanner.type = "text";
+inputScanner.id = "inputScanner";
+inputScanner.style.position = "absolute";
+inputScanner.style.opacity = "0";
+inputScanner.style.height = "0";
+inputScanner.style.width = "0";
+document.body.appendChild(inputScanner);
+
+// Variable para almacenar temporalmente los caracteres del escaneo
+let bufferCodigo = "";
+
+// Escuchar todo lo que el escáner teclee
+document.addEventListener("keydown", (e) => {
+  // Si es una tecla alfanumérica o número, la agregamos al buffer
+  if (e.key.length === 1 && !e.ctrlKey && !e.altKey) {
+    bufferCodigo += e.key;
+  }
+
+  // Si el lector envía Enter, procesamos el código
+  if (e.key === "Enter") {
+    const codigoEscaneado = bufferCodigo.trim();
+    bufferCodigo = ""; // limpiar buffer
+
+    if (!codigoEscaneado) return;
+
+    const productoEncontrado = productos.find(
+      (p) => (p.codigo || "").toString().trim() === codigoEscaneado
+    );
+
+    if (productoEncontrado) {
+      productosSeleccionados.push(productoEncontrado);
+      mostrarProductosSeleccionados(productosSeleccionados);
+      mostrarMensajeVisual(`✅ ${productoEncontrado.nombre} agregado`, "success");
+    } else {
+      mostrarMensajeVisual("❌ Producto no encontrado", "error");
+    }
+  }
+});
+
+
+// ================================
+// Escáner de código de barras
+// ================================
+document.addEventListener('keydown', (e) => {
+    if (e.key === "Enter") {
+        const codigoEscaneado = (e.target.value || "").toString().trim();
+        if (!codigoEscaneado) return;
+
+        const productoEncontrado = productos.find(p => (p.codigo || "").toString().trim() === codigoEscaneado);
+
+        if (productoEncontrado) {
+            if (!productosSeleccionados.some(p => p.id === productoEncontrado.id)) {
+                productosSeleccionados.push(productoEncontrado);
+                mostrarProductosSeleccionados(productosSeleccionados);
+            }
+        } else {
+            alert("Producto no encontrado"); // temporal para debug
+        }
+
+        if (e.target.value !== undefined) e.target.value = '';
+    }
+});
+
+// ================================
+// Inicialización
+// ================================
+document.addEventListener('DOMContentLoaded', cargarProductosRealtime);

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historial — Heladería Rosary</title>
+  <link rel="stylesheet" href="historial.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body>
+  <div class="historial-container">
+    <h2>📜 Historial General</h2>
+
+    <div class="filtro-historial">
+      <input type="text" id="buscadorHistorial" placeholder="Buscar por cliente...">
+      <input type="text" id="fechaHistorial" placeholder="Seleccionar fecha">
+      <button id="btnFiltrar">🔍 Filtrar</button>
+      <button id="btnVerTodo">📋 Ver todo</button>
+    </div>
+
+    <div id="lista-facturas" class="historial-lista">
+      <h3>📦 Facturas</h3>
+      <p id="loading-facturas">Cargando facturas...</p>
+    </div>
+
+    <div id="lista-recibos" class="historial-lista">
+      <h3>💵 Recibos</h3>
+      <p id="loading-recibos">Cargando recibos...</p>
+    </div>
+
+    <div class="acciones">
+      <button id="btn-volver">⬅ Volver al índice</button>
+    </div>
+
+  <script type="module" src="historial.js"></script>
+  </div>
+
+  <script>
+    document.getElementById("btn-volver").addEventListener("click", () => {
+        window.close();
+    });
+  </script>
+</body>
+</html>

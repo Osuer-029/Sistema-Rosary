@@ -1,0 +1,151 @@
+body {
+  font-family: "Poppins", sans-serif;
+  background: #f7f8fa;
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+
+.historial-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.filtros input, .filtros button {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.filtros button {
+  background: #3b82f6;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.filtros button:hover {
+  background: #2563eb;
+}
+
+.estado-carga {
+  text-align: center;
+  color: #555;
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+.historial-lista {
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.item-historial {
+  background: white;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 10px 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: transform 0.1s;
+}
+
+.item-historial:hover {
+  transform: scale(1.01);
+}
+
+.acciones {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.acciones button {
+  padding: 10px 15px;
+  background: #555;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.acciones button:hover {
+  background: #333;
+}
+
+@media (max-width: 600px) {
+  .filtros {
+    flex-direction: column;
+    align-items: center;
+  }
+  .filtros input, .filtros button {
+    width: 90%;
+  }
+}
+
+.historial-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.filtro-historial {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+#fechaHistorial, #buscadorHistorial {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+button {
+  padding: 10px 16px;
+  border: none;
+  background: #4CAF50;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #388E3C;
+}
+
+.historial-lista .item {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+  .filtro-historial {
+    flex-direction: column;
+  }
+}
+

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recibo de Caja — Heladería Rosary</title>
+  <link rel="stylesheet" href="recibo.css">
+</head>
+<body>
+  <div class="recibo-container">
+    <h2>💵 Recibo de Caja</h2>
+
+    <div class="cliente-box">
+      <label>Cliente</label>
+      <div class="cliente-input">
+        <input type="text" id="recibo-cliente" placeholder="Nombre del cliente">
+        <button id="btn-limpiar-cliente" class="btn-x">❌</button>
+      </div>
+    </div>
+
+    <label>Monto Recibido</label>
+    <input type="number" id="recibo-monto" step="0.01">
+
+    <label>Concepto</label>
+    <textarea id="recibo-concepto" placeholder="Motivo del pago o descripción..."></textarea>
+
+    <label>Método de pago</label>
+    <div class="metodos-pago">
+      <label><input type="radio" name="pago" value="Efectivo" checked> Efectivo</label>
+      <label><input type="radio" name="pago" value="Tarjeta"> Tarjeta</label>
+      <label><input type="radio" name="pago" value="Crédito"> Crédito</label>
+    </div>
+
+    <div class="recibo-buttons">
+        <button id="btn-guardar-recibo">💾 Guardar Recibo</button>
+        <button id="btn-volver">⬅ Volver al inicio</button>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="cuentas-container">
+    <h2>📘 Cuentas por Cobrar</h2>
+    <div id="lista-cuentas"></div>
+  </div>
+
+  <script type="module" src="recibo.js"></script>
+
+  <script>
+    document.getElementById("btn-volver").addEventListener("click", () => {
+        window.close();
+    });
+  </script>
+</body>
+</html>

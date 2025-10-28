@@ -1,460 +1,464 @@
-/* --- Reset y base --- */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
+/* ======== ESTILOS GENERALES ======== */
 body {
-    font-family: 'Segoe UI', sans-serif;
-    /* Fondo degradado suave */
-    background: linear-gradient(135deg, #a8edea, #43cea2);
-    color: #333;
-    /* Evita el desplazamiento horizontal en móviles */
-    overflow-x: hidden;
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  background: #f8f9fa;
+  color: #333;
 }
 
-/* --- Contenedor Principal (para centrar contenido si es necesario) --- */
-.container {
-    max-width: 1200px; /* Ancho máximo para el PC */
-    margin: 0 auto;
-    padding: 0 15px; /* Pequeño padding lateral para móviles */
-}
-
-/* --- Header --- */
 header {
-    background: #009688;
-    color: white;
-    padding: 20px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-    position: sticky;
-    top: 0;
-    z-index: 10;
+  background: #0e9c4e;
+  color: white;
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 header h1 {
-    font-size: 2rem;
-    white-space: nowrap; /* Evita que el título se rompa */
+  margin: 5px 0;
+  font-size: 20px;
 }
 
 header button {
-    padding: 10px 18px;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    background: #4caf50;
-    color: white;
-    font-size: 0.95rem;
-    transition: 0.3s;
-    font-weight: bold;
+  background: white;
+  color: #117e48;
+  border: none;
+  padding: 7px 12px;
+  margin: 5px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
 }
+
 header button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  background: #ffe4ec;
 }
 
-/* --- Sección Productos y Buscador --- */
+/* ======== ESTRUCTURA PRINCIPAL ======== */
+.main-contenedor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 15px;
+}
+
+.panel-izquierdo,
+.panel-derecho {
+  background: white;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  flex: 1;
+  min-width: 300px;
+}
+
+/* ======== TÍTULOS Y BUSCADOR ======== */
 .titulo-buscador {
-    display: flex;
-    flex-wrap: wrap; /* Permite que los elementos salten de línea en móvil */
-    justify-content: space-between;
-    align-items: center;
-    margin: 20px 15px;
-    gap: 15px; /* Espacio entre el título y el buscador */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
-#buscador {
-    padding: 8px 12px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    font-size: 1rem;
-    width: 200px; /* Ancho fijo en PC */
-    transition: 0.3s;
+.titulo-buscador input {
+  padding: 6px 10px;
+  width: 55%;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  outline: none;
+  transition: border 0.3s;
+  font-size: 14px;
 }
 
-#buscador:focus {
-    outline: none;
-    border-color: #4caf50;
-    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+.titulo-buscador input:focus {
+  border-color: #e91e63;
 }
 
-/* --- Carrusel (Optimización para Scroll Horizontal) --- */
+/* ======== PRODUCTOS DISPONIBLES ======== */
 .carrusel-container {
-    display: flex;
-    align-items: center;
-    margin: 0 15px 40px 15px;
+  display: flex;
+  align-items: center;
+}
+
+.btn-carrusel {
+  background: #8ebe07;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-carrusel:hover {
+  background: #c2185b;
 }
 
 .carrusel {
-    /* Clave: Permite el scroll horizontal fluido */
-    display: flex;
-    overflow-x: auto;
-    gap: 15px; /* Menos espacio en móvil */
-    scroll-behavior: smooth;
-    padding: 10px 0;
-    -webkit-overflow-scrolling: touch; /* Mejora el scroll en iOS */
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px;
+  scroll-behavior: smooth;
 }
 
-/* Ocultar botones de carrusel en móvil (el scroll es suficiente) */
-.btn-carrusel {
-    background: #009688;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    padding: 10px;
-    border-radius: 10px;
-    cursor: pointer;
-    margin: 0 5px;
-    flex-shrink: 0; /* Evita que el botón se reduzca */
+.carrusel::-webkit-scrollbar {
+  display: none;
 }
-.btn-carrusel:hover { background: #00796b; }
 
-/* --- Productos (Cards) --- */
-.producto {
-    /* Define el ancho de la tarjeta para PC */
-    flex: 0 0 220px;
-    height: 420px;
-    background: #e0f7fa;
-    border-radius: 15px; /* Ligeramente más pequeño para móvil */
-    padding: 15px;
-    text-align: center;
-    display: flex;
+/* ======== TARJETAS DE PRODUCTOS DISPONIBLES ======== */
+.producto-card {
+  background: #fff;
+  border-radius: 8px;
+  width: 120px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  padding: 8px;
+  cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s;
+  flex-shrink: 0;
+}
+
+.producto-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.producto-card img {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.producto-card h4 {
+  margin: 6px 0 2px;
+  font-size: 13px;
+}
+
+.producto-card p {
+  color: #777;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* ======== PRODUCTOS ESCANEADOS ======== */
+.lista-seleccion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.lista-seleccion::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lista-seleccion::-webkit-scrollbar-thumb {
+  background: #e91e63;
+  border-radius: 10px;
+}
+
+/* Cada producto escaneado */
+.item-escaneado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff5f7;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+
+.item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.item-info img {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.item-info div {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-info h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.item-info span {
+  font-size: 12px;
+  color: #555;
+}
+
+/* Controles (cantidad y eliminar) */
+.item-controles {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.item-controles button {
+  background: #e91e63;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 3px 7px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.item-controles button:hover {
+  background: #c2185b;
+}
+
+/* Total general abajo */
+#total-container {
+  text-align: right;
+  font-weight: bold;
+  margin-top: 12px;
+  font-size: 15px;
+  color: #333;
+}
+
+/* ======== MODALES ======== */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal .fact-panel,
+.modal .confirm-panel,
+.modal .recibo-panel,
+.modal .historial-box {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+  animation: fadeIn 0.3s ease;
+}
+
+.close {
+  float: right;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* ======== BOTONES MODALES ======== */
+.fact-buttons,
+.recibo-buttons,
+.confirm-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.btn-si {
+  background: #e91e63;
+  color: white;
+}
+
+.btn-no {
+  background: #ccc;
+  color: #333;
+}
+
+/* ======== RESPONSIVE ======== */
+@media (max-width: 768px) {
+  .main-contenedor {
     flex-direction: column;
+  }
+
+  .producto-card {
+    width: 100px;
+    padding: 6px;
+  }
+
+  .producto-card img {
+    height: 70px;
+  }
+
+  .item-info img {
+    width: 35px;
+    height: 35px;
+  }
+
+  header h1 {
+    font-size: 18px;
+  }
+
+  header button {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}
+
+/* ======== ANIMACIÓN ======== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+
+
+.producto-cuadro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.producto-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.producto-mini {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.producto-detalles {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.cantidad-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cantidad-control button {
+  background: #eee;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.cantidad-control button:hover {
+  background: #ddd;
+}
+
+.btn-imprimir {
+  margin-top: 10px;
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  width: 100%;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-imprimir:hover {
+  background: #218838;
+}
+
+.total-pago {
+  margin-top: 15px;
+  text-align: center;
+}
+
+
+
+
+/* =========================
+   Historial Tickets
+   ========================= */
+.mini-ticket {
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 12px;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.ticket-header, .ticket-footer {
+    text-align: center;
+}
+
+.ticket-body {
+    margin: 5px 0;
+}
+
+.ticket-line {
+    display: flex;
     justify-content: space-between;
-    cursor: pointer;
-    transition: 0.3s;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-.producto:hover {
-    transform: translateY(-4px); /* Animación más sutil */
-    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+
+.ticket-line .nombre { flex: 2; }
+.ticket-line .cant, .ticket-line .pu, .ticket-line .subtotal { flex: 1; text-align: right; }
+
+hr {
+    border: 0;
+    border-top: 1px dashed #aaa;
+    margin: 5px 0;
 }
-.producto img {
-    width: 100%;
-    height: 180px; /* Un poco menos alto */
-    object-fit: cover;
-    border-radius: 10px;
+
+.filtro-historial {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
     margin-bottom: 10px;
 }
-.producto h3 {
-    font-size: 1rem; /* Ligeramente más pequeño en móvil */
-    margin-bottom: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+
+.filtro-historial input {
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 13px;
 }
-.producto p {
-    font-size: 0.9rem;
+
+.historial-box {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 5px 10px;
+}
+
+.historial-lista h3 {
+    text-align: center;
+    text-decoration: underline;
+    margin-top: 0;
     margin-bottom: 5px;
 }
 
-/* --- Botones producto --- */
-.btn-editar, .btn-eliminar {
-    padding: 8px 12px;
-    margin: 2px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: bold;
-}
-.btn-editar { background: #4caf50; color: white; }
-.btn-eliminar { background: #f44336; color: white; }
-.btn-editar:active, .btn-eliminar:active { transform: scale(0.95); }
-
-/* --- Modales --- */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7);
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-    overflow-y: auto; /* Permite scroll si el contenido es largo en móvil */
-    padding: 20px 0;
-}
-
-.add-panel, .fact-panel, .recibo-panel, .confirm-panel {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 25px;
-    width: 400px;
-    max-width: 95%; /* Asegura que siempre quepa en la pantalla */
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    text-align: center;
-    position: relative;
-    /* Centrar verticalmente en móvil si no hay scroll */
-    margin: auto; 
-}
-
-/* Controles de formulario en modales */
-.add-panel input, .add-panel textarea,
-.fact-panel input, .recibo-panel input, .recibo-panel textarea {
-    display: block;
-    width: 100%; /* Ocupa todo el ancho disponible */
-    margin: 10px 0;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 1rem;
-    background: #f9f9f9;
-}
-
-.add-buttons, .fact-buttons, .recibo-buttons, .confirm-buttons {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 15px;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.add-buttons button, .fact-buttons button, .recibo-buttons button, .confirm-buttons button {
-    flex: 1 1 45%; /* Reparto en dos columnas */
-    border-radius: 10px;
-    padding: 10px 15px;
-    font-size: 0.95rem;
-    border: none;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.add-buttons button:hover, .fact-buttons button:hover, .recibo-buttons button:hover, .confirm-buttons button:hover {
-    transform: scale(1.03);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-
-/* --- Historial Moderno --- */
-#historial-facturas .modal-content {
-    /* Usa un nombre de clase más genérico para el contenido del modal de historial */
-    background: #f9f9f9;
-    border: 2px solid #009688;
-    border-radius: 15px;
-    padding: 15px; /* Menos padding en general */
-    max-width: 95%; /* Ajuste a móvil */
-    width: 700px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-}
-
-/* Filtro fecha moderno */
-.bloque-fecha {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: flex-start;
-    background: #fff;
-    border-radius: 10px;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-}
-.bloque-fecha label {
-    flex-direction: column;
-    font-size: 0.85rem;
-}
-.bloque-fecha input[type="date"] {
-    padding: 8px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-}
-.bloque-fecha button {
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    margin-top: auto; /* Alinea los botones con los campos */
-}
-
-/* Items historial */
-.item-historial {
-    flex-direction: column; /* Apila en móvil */
-    align-items: flex-start;
-    padding: 10px;
-    gap: 8px;
-    border-left: 4px solid #009688;
-}
-.acciones-historial {
-    width: 100%;
-    display: flex;
-    justify-content: flex-end; /* Mueve los botones a la derecha en móvil */
-    gap: 10px;
-    margin-top: 5px;
-}
-
-/* --- Responsive (Aplicando las adaptaciones) --- */
-@media (max-width: 768px) {
-    /* --- Header --- */
-    header {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 15px;
-        gap: 10px;
-    }
-    header h1 {
-        font-size: 1.4rem;
-    }
-    header button {
-        width: 100%; /* Botones de encabezado de ancho completo */
-        margin-top: 5px;
-        font-size: 1rem;
-    }
-
-    /* --- Productos y Buscador --- */
-    .titulo-buscador {
-        margin: 15px;
-    }
-    #buscador {
-        width: 100%; /* Buscador de ancho completo en móvil */
-    }
-
-    /* --- Carrusel --- */
-    .btn-carrusel {
-        display: none; /* Ocultar botones de navegación en móvil */
-    }
-    .carrusel-container {
-        margin: 0 0 30px 0; /* Ajustar márgenes para que el carrusel ocupe todo el ancho */
-    }
-    .carrusel {
-        padding: 10px 15px; /* Agregar padding interno para que las cards no toquen los bordes */
-    }
-    .producto {
-        flex: 0 0 180px; /* Reducir el ancho de las tarjetas para que quepan dos o tres */
-        height: 350px;
-        font-size: 0.9rem;
-        padding: 10px;
-    }
-    .producto img {
-        height: 120px;
-    }
-    .producto h3 {
-        font-size: 0.9rem;
-    }
-    .producto p {
-        font-size: 0.8rem;
-    }
-
-    /* --- Modales --- */
-    .add-panel, .fact-panel, .recibo-panel, .confirm-panel {
-        width: 95%;
-        padding: 15px;
-    }
-    .add-buttons button, .fact-buttons button, .recibo-buttons button, .confirm-buttons button {
-        flex: 1 1 100%; /* Botones en modales apilados (ancho completo) */
-    }
-    
-    /* Historial */
-    .item-historial {
-        flex-direction: column; 
-        align-items: flex-start;
-    }
-    .bloque-fecha {
-        flex-direction: column;
-    }
-    .bloque-fecha button {
-        width: 100%;
-        margin-top: 5px;
-    }
-}
 
 
-/* ==========================
-   Productos en Facturación (FactPanel)
-   ========================== */
-
-.lista-seleccion {
-    margin-top: 15px;
-    text-align: left;
-    max-height: 250px; /* Limitar altura para que el modal no se desborde */
-    overflow-y: auto;
-    padding-right: 5px;
-}
-
-.lista-seleccion .producto-cuadro {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #f1f1f1;
-    border-radius: 10px;
-    padding: 8px;
-    margin-bottom: 8px;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.lista-seleccion .producto-cuadro:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.lista-seleccion .producto-img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 6px;
-    margin-right: 10px;
-}
-
-.lista-seleccion .producto-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.lista-seleccion .producto-info .nombre {
-    font-weight: bold;
-    font-size: 0.9rem;
-}
-.lista-seleccion .producto-info .detalle {
-    font-size: 0.8rem;
-    color: #666;
-}
-
-/* Botón quitar producto */
-.lista-seleccion .btn-quitar {
-    flex-shrink: 0;
-    background: #f44336;
-    color: white;
-    border-radius: 6px;
-    padding: 5px 8px;
-    font-size: 0.8rem;
-}
-
-/* Botón agregar más productos */
-.btn-mas {
-    display: block;
-    width: 100%; /* Ancho completo */
-    margin: 15px 0 0;
-    padding: 10px;
-    background: #4caf50;
-    border-radius: 10px;
-    font-size: 1rem;
-}
-
-/* --- Responsive Facturación (Optimizado) --- */
-@media (max-width: 500px) {
-    .lista-seleccion .producto-cuadro {
-        /* Permite que el cuadro se apile en pantallas muy pequeñas */
-        flex-wrap: wrap;
-        align-items: center;
-        padding: 10px;
-    }
-
-    .lista-seleccion .producto-img {
-        width: 40px;
-        height: 40px;
-        order: 1;
-    }
-
-    .lista-seleccion .producto-info {
-        order: 2;
-        width: calc(100% - 70px); /* Ajusta para la imagen y el botón */
-    }
-
-    .lista-seleccion .btn-quitar {
-        order: 3;
-        margin-left: auto;
-    }
-}

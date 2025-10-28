@@ -6,21 +6,20 @@
   <title>Heladería Rosary</title>
   <link rel="stylesheet" href="style.css">
   <!-- Flatpickr CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
 <header>
   <h1>🍦 Heladería Rosary</h1>
-  <button id="btn-abrir-agregar">Agregar Producto</button>
+  <button id="btn-abrir-inventario">📦 Inventario</button>
   <button id="btn-historial">📜 Historial</button>
   <button id="btn-recibo">💵 Recibo de Caja</button>
   <button id="btn-servicios">Servicios</button>
   <button id="btnCuadreGeneral" class="btn-cuadre">💰 Cuadre General</button>
 </header>
 
-<main>
-  <section id="productos">
+<main class="main-contenedor">
+  <section class="panel-izquierdo">
     <div class="titulo-buscador">
       <h2>Productos Disponibles</h2>
       <input type="text" id="buscador" placeholder="🔍 Buscar producto">
@@ -31,29 +30,12 @@
       <button class="btn-carrusel" id="next">▶</button>
     </div>
   </section>
-</main>
 
-<!-- Modal Agregar Producto -->
-<div id="agregar-producto" class="modal">
-  <div class="add-panel">
-    <span id="btn-cerrar-agregar" class="close">&times;</span>
-    <h2>Agregar Producto</h2>
-    <label>Nombre (opcional)</label>
-    <input type="text" id="nombre">
-    <label>Descripción (opcional)</label>
-    <textarea id="descripcion"></textarea>
-    <label>Precio (obligatorio)</label>
-    <input type="number" id="precio" step="0.01">
-    <label>Stock (obligatorio)</label>
-    <input type="number" id="stock">
-    <label>Imagen (opcional)</label>
-    <input type="file" id="imagen" accept="image/*">
-    <div class="add-buttons">
-      <button id="btn-agregar">Agregar producto</button>
-      <button id="btn-cancelar-agregar">Cancelar</button>
-    </div>
-  </div>
-</div>
+  <section class="panel-derecho">
+    <h2>Productos Escaneados</h2>
+    <div id="productos-seleccionados" class="lista-seleccion"></div>
+  </section>
+</main>
 
 <!-- Modal Facturación -->
 <div id="facturacion" class="modal">
@@ -76,85 +58,35 @@
   </div>
 </div>
 
-<!-- Modal Confirmación -->
-<div id="modal-confirmar" class="modal">
-  <div class="confirm-panel">
-    <h3>¿Desea eliminar este producto?</h3>
-    <div class="confirm-buttons">
-      <button id="btn-confirmar-si" class="btn-si">Sí, eliminar</button>
-      <button id="btn-confirmar-no" class="btn-no">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Historial -->
-<div id="historial-facturas" class="modal">
-  <div class="modal-content historial-box">
-    <h2>📜 Historial General</h2>
-    <div id="lista-facturas" class="historial-lista"></div>
-    <div id="lista-recibos" class="historial-lista"></div>
-    <div class="acciones">
-      <button id="btn-cerrar-historial" class="btn-cerrar">Cerrar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Recibo de Caja -->
-<div id="recibo-caja" class="modal">
-  <div class="recibo-panel">
-    <span id="btn-cerrar-recibo" class="close">&times;</span>
-    <h2>💵 Recibo de Caja</h2>
-    <div class="cliente-box">
-      <label>Cliente</label>
-      <div class="cliente-input">
-        <input type="text" id="recibo-cliente" placeholder="Nombre del cliente">
-        <button id="btn-limpiar-cliente" class="btn-x">❌</button>
-      </div>
-    </div>
-    <label>Monto Recibido</label>
-    <input type="number" id="recibo-monto" step="0.01">
-    <label>Concepto</label>
-    <textarea id="recibo-concepto"></textarea>
-    <label>Método de pago</label>
-    <div class="metodos-pago">
-      <label><input type="radio" name="pago" value="Efectivo" checked> Efectivo</label>
-      <label><input type="radio" name="pago" value="Tarjeta"> Tarjeta</label>
-      <label><input type="radio" name="pago" value="Crédito"> Crédito</label>
-    </div>
-    <div class="recibo-buttons">
-      <button id="btn-guardar-recibo">Guardar Recibo</button>
-      <button id="btn-cancelar-recibo">Cancelar</button>
-    </div>
-  </div>
-</div>
 
 
 
-
+<!-- Librerías -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-
-<!-- Flatpickr JS -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
 <script type="module" src="script.js"></script>
 
-
-
-
-<!-- Script Servicios -->
+<!-- Scripts adicionales -->
 <script>
   document.getElementById("btn-servicios").addEventListener("click", () => {
     window.open("servicios.html", "_blank");
   });
-</script>
 
-<script>
-   document.getElementById('btnCuadreGeneral').addEventListener('click', () => {
-    window.open('cuadre.html', '_blank'); // abre el módulo en una nueva pestaña
+  document.getElementById('btnCuadreGeneral').addEventListener('click', () => {
+    window.open('cuadre.html', '_blank');
+  });
+
+  document.getElementById('btn-abrir-inventario').addEventListener('click', () => {
+    window.open('inventario.html', '_blank');
+  });
+
+  document.getElementById('btn-recibo').addEventListener('click', () => {
+    window.open('recibo.html', '_blank');
+  });
+
+  document.getElementById('btn-historial').addEventListener('click', () => {
+    window.open('historial.html', '_blank');
   });
 </script>
-
 </body>
 </html>

@@ -14,13 +14,13 @@ import {
 
 // Tu configuración de la aplicación web
 const firebaseConfig = {
-    apiKey: "AIzaSyDi-yeyvgHQg0n2xAEeH_D-n4sx0OD3SSc",
-    authDomain: "sistema-anthony-7cea5.firebaseapp.com",
-    projectId: "sistema-anthony-7cea5",
-    storageBucket: "sistema-anthony-7cea5.firebasestorage.app",
-    messagingSenderId: "940908012115",
-    appId: "1:940908012115:web:204117d50beef619475ca6",
-    measurementId: "G-RZDC3CMSZQ"
+  apiKey: "AIzaSyBuKs7Nr9oDi1BTkuLm2acYdJv3XWxCQN8",
+  authDomain: "sistema-anthony-26b3a.firebaseapp.com",
+  projectId: "sistema-anthony-26b3a",
+  storageBucket: "sistema-anthony-26b3a.firebasestorage.app",
+  messagingSenderId: "529902521245",
+  appId: "1:529902521245:web:e6326ce36eb31497fa3d74",
+  measurementId: "G-QZS4JMEEC9"
 };
 
 // Inicializar Firebase
