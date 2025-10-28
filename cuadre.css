@@ -148,3 +148,31 @@ body {
 }
 
 
+
+
+
+
+.cuadre-botones-header {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-facturas-credito {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 14px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.25s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.btn-facturas-credito:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mis Facturas a Crédito</title>
+  <link rel="stylesheet" href="facturas-credito.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1>Mis Facturas a Crédito</h1>
+      <a href="app.html" id="btn-volver" class="boton-volver">🏠 Volver</a>
+      <div class="topbar-right">
+        <div class="total-wrap">
+          <div class="label">Total pendiente</div>
+          <div id="totalPendiente" class="total-amount">RD$ 0.00</div>
+        </div>
+        <button id="btnAbrirForm" class="btn primary">+ Nueva</button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="pendientes">Pendientes <span id="countPendientes" class="badge">0</span></button>
+      <button class="tab" data-tab="pagadas">Pagadas <span id="countPagadas" class="badge">0</span></button>
+    </nav>
+
+    <main class="content">
+      <!-- Lista Pendientes -->
+      <section id="listaPendientes" class="lista"></section>
+
+      <!-- Lista Pagadas -->
+      <section id="listaPagadas" class="lista hidden"></section>
+    </main>
+
+    <!-- Modal / Form -->
+    <div id="modalForm" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <button id="cerrarModal" class="close">×</button>
+        <h2>Registrar factura a crédito</h2>
+
+        <form id="formFactura">
+          <label for="proveedor">Proveedor</label>
+          <input id="proveedor" type="text" placeholder="Ej. Distribuidora López" required />
+
+          <label for="monto">Monto (RD$)</label>
+          <input id="monto" type="number" step="0.01" placeholder="Ej. 1250.00" required />
+
+          <label for="nota">Nota (opcional)</label>
+          <textarea id="nota" rows="3" placeholder="Detalles..."></textarea>
+
+          <label for="archivo">Imagen / Foto de la factura</label>
+          <input id="archivo" type="file" accept="image/*" capture="environment" required />
+
+          <div id="preview" class="preview hidden">
+            <img id="previewImg" alt="Preview factura" />
+          </div>
+
+          <div id="progressWrap" class="progress-wrap hidden">
+            <div class="progress-bar"><div id="progressBar" class="progress-fill" style="width:0%"></div></div>
+            <div id="progressText" class="small">0%</div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn primary full">Subir y guardar</button>
+            <button type="button" id="btnCancelar" class="btn full">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <script type="module" src="facturas-credito.js"></script>
+
+  <script>
+    document.getElementById("btn-volver").addEventListener("click", () => {
+        window.close();
+    });
+  </script>
+</body>
+</html>

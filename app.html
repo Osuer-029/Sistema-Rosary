@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heladería Rosary</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Flatpickr CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+<body>
+<header>
+  <h1>🍦 Heladería Rosary</h1>
+  <button id="btn-abrir-inventario">📦 Inventario</button>
+  <button id="btn-historial">📜 Historial</button>
+  <button id="btn-recibo">💵 Recibo de Caja</button>
+  <button id="btn-servicios">Servicios</button>
+  <button id="btnCuadreGeneral" class="btn-cuadre">💰 Cuadre General</button>
+</header>
+
+<main class="main-contenedor">
+  <section class="panel-izquierdo">
+    <div class="titulo-buscador">
+      <h2>Productos Disponibles</h2>
+      <input type="text" id="buscador" placeholder="🔍 Buscar producto">
+    </div>
+    <div class="carrusel-container">
+      <button class="btn-carrusel" id="prev">◀</button>
+      <div id="lista-productos" class="carrusel"></div>
+      <button class="btn-carrusel" id="next">▶</button>
+    </div>
+  </section>
+
+  <section class="panel-derecho">
+    <h2>Productos Escaneados</h2>
+    <div id="productos-seleccionados" class="lista-seleccion"></div>
+  </section>
+</main>
+
+<!-- Modal Facturación -->
+<div id="facturacion" class="modal">
+  <div class="fact-panel">
+    <span id="btn-cerrar-factura" class="close">&times;</span>
+    <h2>Facturación</h2>
+    <label>Cliente</label>
+    <input type="text" id="inputCliente" placeholder="Nombre del cliente">
+    <label>Método de Pago</label>
+    <select id="metodoPago">
+      <option value="Efectivo">Efectivo</option>
+      <option value="Tarjeta">Tarjeta</option>
+      <option value="Crédito">Crédito</option>
+    </select>
+    <div id="facturas-contenedor"></div>
+    <div class="fact-buttons">
+      <button id="btn-facturar">Generar Factura</button>
+      <button id="btn-cancelar-factura">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- Librerías -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script type="module" src="script.js"></script>
+
+<!-- Scripts adicionales -->
+<script>
+  document.getElementById("btn-servicios").addEventListener("click", () => {
+    window.open("servicios.html", "_blank");
+  });
+
+  document.getElementById('btnCuadreGeneral').addEventListener('click', () => {
+    window.open('cuadre.html', '_blank');
+  });
+
+  document.getElementById('btn-abrir-inventario').addEventListener('click', () => {
+    window.open('inventario.html', '_blank');
+  });
+
+  document.getElementById('btn-recibo').addEventListener('click', () => {
+    window.open('recibo.html', '_blank');
+  });
+
+  document.getElementById('btn-historial').addEventListener('click', () => {
+    window.open('historial.html', '_blank');
+  });
+</script>
+</body>
+</html>
