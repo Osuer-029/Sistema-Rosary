@@ -306,26 +306,34 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
   }
 
   const { jsPDF } = window.jspdf;
-  // Formato 80mm ancho × 200mm alto (se ajusta automáticamente al contenido)
+
+  // =======================================
+  // 🧮 Cálculo dinámico del alto del ticket
+  // =======================================
+  const alturaBase = 60; // Encabezado + logo
+  const alturaPorProducto = 6;
+  const alturaTotal = alturaBase + listaProductos.length * alturaPorProducto + 60;
+
+  // ✅ Formato térmico real (80 mm ancho, altura dinámica)
   const doc = new jsPDF({
     unit: "mm",
-    format: [80, 200],
+    format: [80, alturaTotal],
   });
 
-  let y = 8;
+  let y = 4; // Comienza bien arriba
 
   // ===============================
-  // 1️⃣ Logo
+  // 1️⃣ Logo (ajustado arriba)
   // ===============================
   try {
     const img = new Image();
-    img.src = "logo rosary.jpg"; // Debe estar en la misma carpeta del proyecto
+    img.src = "logo rosary.jpg";
     await new Promise((resolve) => {
       img.onload = resolve;
       img.onerror = resolve;
     });
-    doc.addImage(img, "JPEG", 20, y, 40, 40); // centrado en 80mm
-    y += 45;
+    doc.addImage(img, "JPEG", 20, y, 40, 30);
+    y += 35;
   } catch (e) {
     console.warn("⚠️ No se pudo cargar el logo:", e);
   }
@@ -340,13 +348,13 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
   doc.setFontSize(8);
   doc.text("Villa González - Santiago", 40, y, { align: "center" }); y += 4;
   doc.text("Tel: +1 (809) 790-4593", 40, y, { align: "center" }); y += 6;
-  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 6;
+  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 5;
 
   const fecha = new Date();
   const fechaStr = fecha.toLocaleDateString("es-DO");
   const horaStr = fecha.toLocaleTimeString("es-DO");
   doc.text(`Fecha: ${fechaStr} Hora: ${horaStr}`, 40, y, { align: "center" }); y += 6;
-  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 6;
+  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 5;
 
   // ===============================
   // 3️⃣ Encabezado de columnas
@@ -397,7 +405,7 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
   doc.text("----------------------------------------", 40, y, { align: "center" });
 
   // ===============================
-  // 7️⃣ Impresión directa y guardado
+  // 7️⃣ Impresión automática y guardado
   // ===============================
   const blob = doc.output("blob");
   const url = URL.createObjectURL(blob);
@@ -407,12 +415,15 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
   iframe.src = url;
   document.body.appendChild(iframe);
 
+  // ⏱ Esperar a que cargue bien y luego imprimir directo
   iframe.onload = () => {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print(); // 🔹 Imprime directo al printer predeterminado
+    setTimeout(() => {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    }, 800);
   };
 
-  // Guardar PDF automáticamente
+  // 💾 Guardar copia PDF automáticamente
   const fechaHora = fecha.toISOString().replace(/[:.]/g, "-");
   doc.save(`ticket-${fechaHora}.pdf`);
 }
