@@ -303,6 +303,19 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
     return;
   }
 
+  // Convertir logo a Base64 para incrustarlo
+  async function getBase64Image(url) {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  const logoBase64 = await getBase64Image("logo rosary.jpg"); // asegúrate de tenerlo junto al script
+
   let total = 0;
   listaProductos.forEach(p => {
     total += (p.precio || 0) * (p.cantidad || 1);
@@ -312,29 +325,42 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
   const fechaStr = fecha.toLocaleDateString("es-DO");
   const horaStr = fecha.toLocaleTimeString("es-DO");
 
-  const logoPath = "logo rosary.jpg"; // asegúrate de tener este archivo junto al index.html
-
   const ticketHTML = `
+    <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
       <title>Ticket - Heladería Rosary</title>
       <style>
-        @page { size: 80mm auto; margin: 0; }
+        @page {
+          size: 80mm auto;
+          margin: 0;
+        }
+        html, body {
+          margin: 0;
+          padding: 0;
+          width: 80mm;
+          height: auto;
+          background: #fff;
+        }
         body {
           font-family: 'Courier New', monospace;
           font-size: 10pt;
-          margin: 0;
-          padding: 8px 0;
-          width: 74mm; /* ancho más seguro */
           display: flex;
           justify-content: center;
+          align-items: flex-start;
         }
         .ticket {
-          width: 90%;
+          width: 74mm;
           text-align: center;
+          line-height: 1.3;
+          margin: 0;
+          padding: 0;
         }
-        .linea { border-top: 1px dashed #000; margin: 5px 0; }
+        .linea {
+          border-top: 1px dashed #000;
+          margin: 5px 0;
+        }
         table {
           width: 100%;
           border-collapse: collapse;
@@ -345,13 +371,14 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
           padding: 2px 0;
           word-wrap: break-word;
         }
-        .producto { width: 45%; text-align: left; }
-        .cantidad { width: 20%; text-align: center; }
+        .producto { width: 44%; text-align: left; }
+        .cantidad { width: 22%; text-align: center; }
         .total { width: 25%; text-align: right; }
         img.logo {
-          width: 85px;
+          width: 100px;
           height: auto;
-          margin-bottom: 5px;
+          margin: 0 auto 4px auto;
+          display: block;
         }
         .footer {
           margin-top: 8px;
@@ -361,7 +388,7 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
     </head>
     <body>
       <div class="ticket">
-        <img src="${logoPath}" alt="Logo Rosary" class="logo"><br>
+        <img src="${logoBase64}" alt="Logo Rosary" class="logo">
         <strong>HELADERÍA ROSARY</strong><br>
         Villa González - Santiago<br>
         Tel: +1 (809) 790-4593<br>
@@ -397,21 +424,21 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
           ¡Vuelva pronto!
         </div>
       </div>
+      <script>
+        window.onload = function() {
+          window.print();
+          setTimeout(() => window.close(), 600);
+        };
+      </script>
     </body>
     </html>
   `;
 
-  const printWin = window.open('', '', 'width=400,height=800');
-  printWin.document.open();
-  printWin.document.write(ticketHTML);
-  printWin.document.close();
-
-  printWin.onload = function () {
-    printWin.focus();
-    printWin.print();
-    setTimeout(() => printWin.close(), 600);
-  };
+  const blob = new Blob([ticketHTML], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const printWin = window.open(url, '_blank', 'width=400,height=800');
 }
+
 
 
 

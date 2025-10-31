@@ -32,6 +32,7 @@ const telefono = document.getElementById("telefono");
 const fechaEntrada = document.getElementById("fechaEntrada");
 const monto = document.getElementById("monto");
 const servicio = document.getElementById("servicio");
+const tipoServicioSelect = document.getElementById("tipo-servicio"); // nuevo select
 const btnAgregar = document.getElementById("btn-agregar");
 const lista = document.getElementById("clientes-lista");
 
@@ -42,6 +43,7 @@ const editarTelefono = document.getElementById("editar-telefono");
 const editarFechaEntrada = document.getElementById("editar-fechaEntrada");
 const editarMonto = document.getElementById("editar-monto");
 const editarServicio = document.getElementById("editar-servicio");
+const editarTipoServicio = document.getElementById("editar-tipo-servicio"); // si existe en HTML, usado al editar
 const btnGuardarEdicion = document.getElementById("guardar-edicion");
 const btnCancelarEdicion = document.getElementById("cancelar-edicion");
 
@@ -77,6 +79,9 @@ let clientes = [];
 let clienteEditando = null;
 let clientePagando = null;
 let clienteHistorial = null;
+
+// Variable para almacenar la factura actual que se muestra en la modal
+let facturaActual = null;
 
 // ===============================================
 // 3. FUNCIONES BASE DE DATOS
@@ -184,6 +189,10 @@ async function registrarPago(clienteId, datosPago) {
 
 
 
+
+
+
+
 // ===============================================
 // 5. HISTORIAL DE PAGOS
 // ===============================================
@@ -266,7 +275,7 @@ function render(clientesFiltrados = clientes) {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <div class="card-header"><h3>${c.nombre}</h3><span>${c.servicio}</span></div>
+      <div class="card-header"><h3>${c.nombre}</h3><span>${c.servicio} ${c.tipoServicio ? '— ' + c.tipoServicio : ''}</span></div>
       <div class="contacto-info">📧 ${c.correo || "Sin correo"} | 📞 ${c.telefono || "Sin teléfono"}</div>
       <div class="card-detalles">
         <p>🗓️ Próximo Corte: ${fechaCorteStr}</p>
@@ -305,19 +314,28 @@ function abrirEditar(id) {
   editarFechaEntrada.value = cliente.fechaEntrada;
   editarMonto.value = cliente.monto;
   editarServicio.value = cliente.servicio;
+  // Si existe el select de tipo dentro del modal de edición, cargar su valor
+  if (editarTipoServicio) {
+    editarTipoServicio.value = cliente.tipoServicio || "Televisión";
+  }
   modalEditar.style.display = "flex";
 }
 
 btnGuardarEdicion.onclick = () => {
   if (!clienteEditando) return;
-  actualizarCliente(clienteEditando, {
+  const datosActualizados = {
     nombre: editarNombre.value,
     correo: editarCorreo.value,
     telefono: editarTelefono.value,
     fechaEntrada: editarFechaEntrada.value,
     monto: parseFloat(editarMonto.value),
     servicio: editarServicio.value
-  });
+  };
+  // Si existe el select de tipo en el modal de edición, inclúyelo
+  if (editarTipoServicio) {
+    datosActualizados.tipoServicio = editarTipoServicio.value;
+  }
+  actualizarCliente(clienteEditando, datosActualizados);
   modalEditar.style.display = "none";
 };
 
@@ -365,6 +383,9 @@ async function abrirFacturaCliente(id) {
 
   const pagoTemporal = { monto: Number(cliente.monto), metodo: "Efectivo", meses: 1, atrasados: mesesAtrasados };
   mostrarFactura(cliente, pagoTemporal);
+
+  // Guardar la factura actual para usar en impresión
+  facturaActual = { cliente, pago: pagoTemporal };
 }
 
 function mostrarFactura(cliente, pago) {
@@ -379,7 +400,7 @@ function mostrarFactura(cliente, pago) {
   Fecha: ${new Date().toLocaleDateString('es-ES')}
   Cliente: ${cliente.nombre}
   Teléfono: ${cliente.telefono || 'No disponible'}
-  Servicio: ${cliente.servicio}
+  Servicio: ${cliente.servicio} ${cliente.tipoServicio ? '— ' + cliente.tipoServicio : ''}
   Monto: $${pago.monto.toFixed(2)}
   Meses: ${pago.meses}
   Método: ${pago.metodo}
@@ -389,20 +410,166 @@ function mostrarFactura(cliente, pago) {
       ¡Gracias por preferirnos!
   ========================================`;
   modalFactura.style.display = "flex";
+
+  // Re-configurar el botón imprimir para usar la factura actual y la impresión que guardará PDF + imprimirá directo
+  btnImprimirPDF.onclick = async () => {
+    if (!facturaActual) return alert("No hay factura cargada.");
+    await imprimirFacturaDirecta(facturaActual.cliente, facturaActual.pago);
+  };
 }
 
 btnCerrarFactura.onclick = () => modalFactura.style.display = "none";
 
-btnImprimirPDF.onclick = () => {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: "pt", format: [300, 400] });
-  doc.setFont("Courier");
-  doc.setFontSize(12);
-  facturaContenido.innerText.split("\n").forEach((line, i) => {
-    doc.text(line.trim(), 150, 20 + i * 14, { align: "center" });
-  });
-  doc.save("factura.pdf");
-};
+// ===============================================
+// Nueva función: imprimirFacturaDirecta
+// Genera un ticket compacto con logo, imprime directo y guarda PDF
+// ===============================================
+async function imprimirFacturaDirecta(cliente, pago) {
+  try {
+    // 1) Crear HTML para impresión directa (ventana temporal)
+    const fecha = new Date();
+    const fechaStr = fecha.toLocaleDateString("es-DO");
+    const horaStr = fecha.toLocaleTimeString("es-DO");
+    const logoPath = "logo rosary.jpg"; // archivo en la raíz del proyecto
+
+    // Tabla de contenido simple (ticket compacto)
+    const ticketHTML = `
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Factura - ${cliente.nombre}</title>
+        <style>
+          @page { size: 80mm auto; margin: 0; }
+          body {
+            font-family: 'Courier New', monospace;
+            font-size: 10pt;
+            margin: 0;
+            padding: 6px 4px;
+            width: 74mm;
+            box-sizing: border-box;
+          }
+          .center { text-align: center; }
+          .linea { border-top: 1px dashed #000; margin: 6px 0; }
+          .logo { width: 90px; height: auto; margin-bottom: 6px; display:block; margin-left:auto; margin-right:auto; }
+          table { width: 100%; border-collapse: collapse; margin-top:6px; }
+          td { padding: 2px 0; vertical-align: top; }
+          .left { text-align: left; }
+          .right { text-align: right; }
+        </style>
+      </head>
+      <body>
+        <div class="center">
+          <img src="${logoPath}" class="logo" alt="Logo Rosary">
+          <strong>HELADERÍA ROSARY</strong><br>
+          Villa González - Santiago<br>
+          Tel: +1 (809) 790-4593<br>
+          <div class="linea"></div>
+          <small>Fecha: ${fechaStr} - Hora: ${horaStr}</small><br>
+          <div class="linea"></div>
+        </div>
+
+        <div style="margin-top:6px;">
+          <table>
+            <tr><td class="left">Cliente:</td><td class="right">${cliente.nombre}</td></tr>
+            <tr><td class="left">Tel:</td><td class="right">${cliente.telefono || 'No disponible'}</td></tr>
+            <tr><td class="left">Servicio:</td><td class="right">${cliente.servicio}${cliente.tipoServicio ? ' — ' + cliente.tipoServicio : ''}</td></tr>
+            <tr><td class="left">Monto:</td><td class="right">RD$ ${pago.monto.toFixed(2)}</td></tr>
+            <tr><td class="left">Meses:</td><td class="right">${pago.meses}</td></tr>
+            ${pago.atrasados > 0 ? `<tr><td class="left">Atrasados:</td><td class="right">${pago.atrasados}</td></tr>` : ''}
+          </table>
+        </div>
+
+        <div class="linea"></div>
+        <div class="center"><strong>TOTAL: RD$ ${pago.monto.toFixed(2)}</strong></div>
+        <div class="linea"></div>
+        <div class="center">¡Gracias por preferirnos!<br>Vuelva pronto :)</div>
+      </body>
+      </html>
+    `;
+
+    // Abrir ventana temporal para impresión (esto permite imprimir directo sin PDF)
+    const printWin = window.open('', '', 'width=400,height=600');
+    printWin.document.open();
+    printWin.document.write(ticketHTML);
+    printWin.document.close();
+
+    // Esperar a que cargue y mandar imprimir directo
+    printWin.onload = function () {
+      try {
+        printWin.focus();
+        printWin.print();
+      } catch (e) {
+        console.warn("Error al imprimir desde ventana:", e);
+      } finally {
+        setTimeout(() => { try { printWin.close(); } catch (e) {} }, 700);
+      }
+    };
+
+    // 2) Generar PDF con jsPDF y descargar automáticamente (copia)
+    // Solo se ejecuta si jsPDF está disponible
+    if (window.jspdf && window.jspdf.jsPDF) {
+      try {
+        const { jsPDF } = window.jspdf;
+        // Creamos un PDF con proporciones térmicas (en mm)
+        const doc = new jsPDF({ unit: "mm", format: [80, 120] }); // alto pequeño, luego ajustamos
+        let y = 8;
+
+        // Agregar logo (si carga)
+        const img = new Image();
+        img.src = logoPath;
+        await new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve; // continúa si falla
+        });
+        if (img && img.width) {
+          const logoW = 30; // mm
+          const centerX = 40 - (logoW / 2);
+          doc.addImage(img, "JPEG", centerX, y, logoW, (img.height / img.width) * logoW);
+          y += (img.height / img.width) * logoW + 2;
+        }
+
+        doc.setFont("Courier", "bold");
+        doc.setFontSize(11);
+        doc.text("HELADERÍA ROSARY", 40, y, { align: "center" });
+        y += 6;
+        doc.setFont("Courier", "normal");
+        doc.setFontSize(8);
+        doc.text("Villa González - Santiago", 40, y, { align: "center" }); y += 5;
+        doc.text("Tel: +1 (809) 790-4593", 40, y, { align: "center" }); y += 6;
+        doc.text("----------------------------------------", 40, y, { align: "center" }); y += 6;
+
+        doc.text(`Fecha: ${new Date().toLocaleDateString('es-DO')} Hora: ${new Date().toLocaleTimeString('es-DO')}`, 40, y, { align: "center" }); y += 6;
+        doc.text("----------------------------------------", 40, y, { align: "center" }); y += 6;
+
+        doc.setFontSize(9);
+        doc.text(`Cliente: ${cliente.nombre}`, 8, y); y += 5;
+        doc.text(`Tel: ${cliente.telefono || 'No disponible'}`, 8, y); y += 5;
+        doc.text(`Servicio: ${cliente.servicio}${cliente.tipoServicio ? ' — ' + cliente.tipoServicio : ''}`, 8, y); y += 6;
+        doc.text(`Monto: RD$ ${pago.monto.toFixed(2)}`, 8, y); y += 6;
+        if (pago.atrasados > 0) { doc.text(`Atrasados: ${pago.atrasados}`, 8, y); y += 6; }
+        doc.text("----------------------------------------", 40, y, { align: "center" }); y += 6;
+        doc.setFont("Courier", "bold");
+        doc.text(`TOTAL: RD$ ${pago.monto.toFixed(2)}`, 40, y, { align: "center" }); y += 8;
+        doc.setFont("Courier", "normal");
+        doc.text("¡Gracias por preferirnos!", 40, y, { align: "center" }); y += 6;
+        doc.text("Vuelva pronto!", 40, y, { align: "center" }); y += 6;
+
+        // ajustar alto real
+        doc.internal.pageSize.height = y + 6;
+
+        // guardar PDF automáticamente
+        const nombreArchivo = `Factura_Rosary_${(new Date()).toISOString().replace(/[:.]/g, "-")}.pdf`;
+        doc.save(nombreArchivo);
+      } catch (e) {
+        console.warn("No se pudo generar PDF con jsPDF:", e);
+      }
+    }
+
+  } catch (e) {
+    console.error("Error en imprimirFacturaDirecta:", e);
+    alert("Ocurrió un error al intentar imprimir la factura.");
+  }
+}
 
 // ===============================================
 // 9. ESTADO DE CUENTA FUNCIONAL
@@ -483,8 +650,6 @@ btnFiltrarFechas.onclick = async () => {
   totalCobrar.textContent = `💰 Total a cobrar: $${total.toFixed(2)}`;
 };
 
-
-
 // ===============================================
 // 10. AGREGAR CLIENTE
 // ===============================================
@@ -496,7 +661,8 @@ btnAgregar.onclick = () => {
     telefono: telefono.value,
     fechaEntrada: fechaEntrada.value || new Date().toISOString().split("T")[0],
     monto: parseFloat(monto.value),
-    servicio: servicio.value
+    servicio: servicio.value,
+    tipoServicio: tipoServicioSelect ? tipoServicioSelect.value : undefined
   });
 };
 
@@ -504,6 +670,7 @@ function limpiar() {
   nombre.value = correo.value = telefono.value = monto.value = "";
   fechaEntrada.value = "";
   servicio.value = "Netflix";
+  if (tipoServicioSelect) tipoServicioSelect.value = "Televisión";
 }
 
 // ===============================================
@@ -511,7 +678,7 @@ function limpiar() {
 // ===============================================
 document.getElementById("btn-buscar").onclick = () => {
   const term = document.getElementById("buscador-input").value.toLowerCase();
-  render(clientes.filter(c => c.nombre.toLowerCase().includes(term) || c.servicio.toLowerCase().includes(term)));
+  render(clientes.filter(c => c.nombre.toLowerCase().includes(term) || c.servicio.toLowerCase().includes(term) || (c.tipoServicio || '').toLowerCase().includes(term)));
 };
 
 // ===============================================
