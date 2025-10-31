@@ -313,10 +313,10 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
   const fechaStr = fecha.toLocaleDateString("es-DO");
   const horaStr = fecha.toLocaleTimeString("es-DO");
 
-  // Ruta del logo — debe estar en la misma carpeta que tu index.html
+  // Ruta del logo (debe estar junto al index.html)
   const logoPath = "logo rosary.jpg";
 
-  // Crear contenido HTML del ticket
+  // HTML optimizado para 80mm térmica
   const ticketHTML = `
     <html>
     <head>
@@ -328,16 +328,27 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
           font-family: 'Courier New', monospace;
           font-size: 10pt;
           margin: 0;
-          padding: 4px;
-          width: 80mm;
+          padding: 6px;
+          width: 78mm;
+          box-sizing: border-box;
         }
         .center { text-align: center; }
         .linea { border-top: 1px dashed #000; margin: 4px 0; }
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 2px 0; vertical-align: top; }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          table-layout: fixed;
+        }
+        td {
+          padding: 2px 0;
+          word-wrap: break-word;
+        }
+        .producto { width: 48%; }
+        .cantidad { width: 20%; text-align: center; }
+        .total { width: 30%; text-align: right; }
         .right { text-align: right; }
         img.logo {
-          width: 60px;
+          width: 80px;
           height: auto;
           margin-bottom: 5px;
         }
@@ -356,13 +367,18 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
 
       <table>
         <thead>
-          <tr><td><b>Producto</b></td><td class="right"><b>Total</b></td></tr>
+          <tr>
+            <td class="producto"><b>Producto</b></td>
+            <td class="cantidad"><b>Cant</b></td>
+            <td class="total"><b>Total</b></td>
+          </tr>
         </thead>
         <tbody>
           ${listaProductos.map(p => `
             <tr>
-              <td>${p.nombre} x${p.cantidad}</td>
-              <td class="right">RD$ ${(p.precio * p.cantidad).toFixed(2)}</td>
+              <td class="producto">${p.nombre.length > 16 ? p.nombre.slice(0,16) + "…" : p.nombre}</td>
+              <td class="cantidad">${p.cantidad}</td>
+              <td class="total">RD$ ${(p.precio * p.cantidad).toFixed(2)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -386,13 +402,14 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
   printWin.document.write(ticketHTML);
   printWin.document.close();
 
-  // Esperar a que cargue y mandar a imprimir directo
+  // Esperar a que cargue y mandar a imprimir
   printWin.onload = function () {
     printWin.focus();
     printWin.print();
     setTimeout(() => printWin.close(), 500);
   };
 }
+
 
 
 
