@@ -298,135 +298,102 @@ function mostrarProductosSeleccionados(lista) {
 // ... (código anterior)
 
 async function imprimirTicket(listaProductos, cliente = { nombre: "General", telefono: "No disponible" }) {
-  console.log("🧾 Ejecutando imprimirTicket()", listaProductos);
-
   if (!listaProductos || listaProductos.length === 0) {
     alert("No hay productos en la lista para imprimir.");
     return;
   }
 
-  const { jsPDF } = window.jspdf;
-
-  // =======================================
-  // 🧮 Cálculo dinámico del alto del ticket
-  // =======================================
-  const alturaBase = 60; // Encabezado + logo
-  const alturaPorProducto = 6;
-  const alturaTotal = alturaBase + listaProductos.length * alturaPorProducto + 60;
-
-  // ✅ Formato térmico real (80 mm ancho, altura dinámica)
-  const doc = new jsPDF({
-    unit: "mm",
-    format: [80, alturaTotal],
+  // Calcular total
+  let total = 0;
+  listaProductos.forEach(p => {
+    total += (p.precio || 0) * (p.cantidad || 1);
   });
-
-  let y = 4; // Comienza bien arriba
-
-  // ===============================
-  // 1️⃣ Logo (ajustado arriba)
-  // ===============================
-  try {
-    const img = new Image();
-    img.src = "logo rosary.jpg";
-    await new Promise((resolve) => {
-      img.onload = resolve;
-      img.onerror = resolve;
-    });
-    doc.addImage(img, "JPEG", 20, y, 40, 30);
-    y += 35;
-  } catch (e) {
-    console.warn("⚠️ No se pudo cargar el logo:", e);
-  }
-
-  // ===============================
-  // 2️⃣ Encabezado
-  // ===============================
-  doc.setFont("Courier", "bold");
-  doc.setFontSize(11);
-  doc.text("HELADERÍA ROSARY", 40, y, { align: "center" }); y += 5;
-  doc.setFont("Courier", "normal");
-  doc.setFontSize(8);
-  doc.text("Villa González - Santiago", 40, y, { align: "center" }); y += 4;
-  doc.text("Tel: +1 (809) 790-4593", 40, y, { align: "center" }); y += 6;
-  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 5;
 
   const fecha = new Date();
   const fechaStr = fecha.toLocaleDateString("es-DO");
   const horaStr = fecha.toLocaleTimeString("es-DO");
-  doc.text(`Fecha: ${fechaStr} Hora: ${horaStr}`, 40, y, { align: "center" }); y += 6;
-  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 5;
 
-  // ===============================
-  // 3️⃣ Encabezado de columnas
-  // ===============================
-  doc.setFont("Courier", "bold");
-  doc.text("Prod", 4, y);
-  doc.text("Cant", 32, y);
-  doc.text("P.Unit", 50, y);
-  doc.text("Total", 70, y, { align: "right" });
-  y += 5;
-  doc.setFont("Courier", "normal");
-  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 5;
+  // Ruta del logo — debe estar en la misma carpeta que tu index.html
+  const logoPath = "logo rosary.jpg";
 
-  // ===============================
-  // 4️⃣ Lista de productos
-  // ===============================
-  let total = 0;
-  listaProductos.forEach((p) => {
-    const nombre = p.nombre.length > 10 ? p.nombre.slice(0, 10) + "..." : p.nombre;
-    const cant = p.cantidad || 1;
-    const precioUnit = Number(p.precio).toFixed(2);
-    const subtotal = (Number(p.precio) * cant).toFixed(2);
+  // Crear contenido HTML del ticket
+  const ticketHTML = `
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Ticket - Heladería Rosary</title>
+      <style>
+        @page { size: 80mm auto; margin: 0; }
+        body {
+          font-family: 'Courier New', monospace;
+          font-size: 10pt;
+          margin: 0;
+          padding: 4px;
+          width: 80mm;
+        }
+        .center { text-align: center; }
+        .linea { border-top: 1px dashed #000; margin: 4px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 2px 0; vertical-align: top; }
+        .right { text-align: right; }
+        img.logo {
+          width: 60px;
+          height: auto;
+          margin-bottom: 5px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="center">
+        <img src="${logoPath}" alt="Logo Rosary" class="logo"><br>
+        <strong>HELADERÍA ROSARY</strong><br>
+        Villa González - Santiago<br>
+        Tel: +1 (809) 790-4593<br>
+        <div class="linea"></div>
+        <small>Fecha: ${fechaStr} - Hora: ${horaStr}</small><br>
+        <div class="linea"></div>
+      </div>
 
-    doc.text(nombre, 4, y);
-    doc.text(String(cant), 33, y);
-    doc.text(precioUnit, 52, y);
-    doc.text(subtotal, 75, y, { align: "right" });
+      <table>
+        <thead>
+          <tr><td><b>Producto</b></td><td class="right"><b>Total</b></td></tr>
+        </thead>
+        <tbody>
+          ${listaProductos.map(p => `
+            <tr>
+              <td>${p.nombre} x${p.cantidad}</td>
+              <td class="right">RD$ ${(p.precio * p.cantidad).toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
 
-    total += Number(p.precio) * cant;
-    y += 5;
-  });
+      <div class="linea"></div>
+      <div class="center"><strong>TOTAL: RD$ ${total.toFixed(2)}</strong></div>
+      <div class="linea"></div>
 
-  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 5;
+      <div class="center">
+        ¡Gracias por preferirnos!<br>
+        Vuelva pronto :)
+      </div>
+    </body>
+    </html>
+  `;
 
-  // ===============================
-  // 5️⃣ Total
-  // ===============================
-  doc.setFont("Courier", "bold");
-  doc.text(`TOTAL: RD$ ${total.toFixed(2)}`, 40, y, { align: "center" }); y += 8;
+  // Crear ventana temporal para impresión directa
+  const printWin = window.open('', '', 'width=400,height=600');
+  printWin.document.open();
+  printWin.document.write(ticketHTML);
+  printWin.document.close();
 
-  // ===============================
-  // 6️⃣ Pie del ticket
-  // ===============================
-  doc.setFont("Courier", "normal");
-  doc.setFontSize(8);
-  doc.text("¡Gracias por preferirnos!", 40, y, { align: "center" }); y += 4;
-  doc.text("Vuelva pronto!", 40, y, { align: "center" }); y += 4;
-  doc.text("----------------------------------------", 40, y, { align: "center" });
-
-  // ===============================
-  // 7️⃣ Impresión automática y guardado
-  // ===============================
-  const blob = doc.output("blob");
-  const url = URL.createObjectURL(blob);
-
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = url;
-  document.body.appendChild(iframe);
-
-  // ⏱ Esperar a que cargue bien y luego imprimir directo
-  iframe.onload = () => {
-    setTimeout(() => {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-    }, 800);
+  // Esperar a que cargue y mandar a imprimir directo
+  printWin.onload = function () {
+    printWin.focus();
+    printWin.print();
+    setTimeout(() => printWin.close(), 500);
   };
-
-  // 💾 Guardar copia PDF automáticamente
-  const fechaHora = fecha.toISOString().replace(/[:.]/g, "-");
-  doc.save(`ticket-${fechaHora}.pdf`);
 }
+
 
 
 
