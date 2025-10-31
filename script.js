@@ -327,111 +327,112 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
 
   const ticketHTML = `
     <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Ticket - Heladería Rosary</title>
-      <style>
-        @page {
-          size: 80mm auto;
-          margin: 0;
-        }
-        html, body {
-          margin: 0;
-          padding: 0;
-          width: 80mm;
-          height: auto;
-          background: #fff;
-        }
-        body {
-          font-family: 'Courier New', monospace;
-          font-size: 10pt;
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
-        }
-        .ticket {
-          width: 74mm;
-          text-align: center;
-          line-height: 1.3;
-          margin: 0;
-          padding: 0;
-        }
-        .linea {
-          border-top: 1px dashed #000;
-          margin: 5px 0;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          table-layout: fixed;
-          margin: 0 auto;
-        }
-        td {
-          padding: 2px 0;
-          word-wrap: break-word;
-        }
-        .producto { width: 44%; text-align: left; }
-        .cantidad { width: 22%; text-align: center; }
-        .total { width: 25%; text-align: right; }
-        img.logo {
-          width: 100px;
-          height: auto;
-          margin: 0 auto 4px auto;
-          display: block;
-        }
-        .footer {
-          margin-top: 8px;
-          font-size: 9pt;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="ticket">
-        <img src="${logoBase64}" alt="Logo Rosary" class="logo">
-        <strong>HELADERÍA ROSARY</strong><br>
-        Villa González - Santiago<br>
-        Tel: +1 (809) 790-4593<br>
-        <div class="linea"></div>
-        <small>Fecha: ${fechaStr} - Hora: ${horaStr}</small><br>
-        <div class="linea"></div>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Factura - ${cliente.nombre}</title>
+  <style>
+    /* Fuerza el inicio del ticket sin márgenes ni zona blanca */
+    @page { size: 80mm auto; margin: 0; }
 
-        <table>
-          <thead>
-            <tr>
-              <td class="producto"><b>Producto</b></td>
-              <td class="cantidad"><b>Cant</b></td>
-              <td class="total"><b>Total</b></td>
-            </tr>
-          </thead>
-          <tbody>
-            ${listaProductos.map(p => `
-              <tr>
-                <td class="producto">${p.nombre.length > 16 ? p.nombre.slice(0,16) + "…" : p.nombre}</td>
-                <td class="cantidad">${p.cantidad}</td>
-                <td class="total">RD$ ${(p.precio * p.cantidad).toFixed(2)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 80mm;
+      background: #fff;
+    }
 
-        <div class="linea"></div>
-        <div><strong>TOTAL: RD$ ${total.toFixed(2)}</strong></div>
-        <div class="linea"></div>
+    /* 👇 Este truco evita el margen superior “fantasma” */
+    body::before {
+      content: "";
+      display: block;
+      height: 0;
+      margin: 0;
+      padding: 0;
+    }
 
-        <div class="footer">
-          ¡Gracias por preferirnos!<br>
-          ¡Vuelva pronto!
-        </div>
-      </div>
-      <script>
-        window.onload = function() {
-          window.print();
-          setTimeout(() => window.close(), 600);
-        };
-      </script>
-    </body>
-    </html>
+    .ticket {
+      width: 74mm;
+      margin: 0 auto;
+      text-align: center;
+      line-height: 1.3;
+      padding: 0; /* sin relleno */
+    }
+
+    img.logo {
+      width: 100px;
+      height: auto;
+      display: block;
+      margin: 0 auto 4px auto;
+    }
+
+    .linea {
+      border-top: 1px dashed #000;
+      margin: 3px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0 auto;
+    }
+
+    td {
+      padding: 1px 0;
+      word-wrap: break-word;
+    }
+
+    .left { text-align: left; width: 40%; }
+    .right { text-align: right; width: 60%; }
+
+    .footer {
+      margin-top: 6px;
+      font-size: 9pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="ticket">
+    ${logoBase64 ? `<img src="${logoBase64}" alt="Logo Rosary" class="logo">` : ""}
+    <strong>HELADERÍA ROSARY</strong><br>
+    Villa González - Santiago<br>
+    Tel: +1 (809) 790-4593<br>
+    <div class="linea"></div>
+    <small>Fecha: ${fechaStr} — Hora: ${horaStr}</small><br>
+    <div class="linea"></div>
+
+    <table>
+      <tr><td class="left">Cliente:</td><td class="right">${cliente.nombre}</td></tr>
+      <tr><td class="left">Tel:</td><td class="right">${cliente.telefono || 'No disponible'}</td></tr>
+      <tr><td class="left">Servicio:</td><td class="right">${cliente.servicio}${cliente.tipoServicio ? ' — ' + cliente.tipoServicio : ''}</td></tr>
+      <tr><td class="left">Monto:</td><td class="right">RD$ ${pago.monto.toFixed(2)}</td></tr>
+      <tr><td class="left">Meses:</td><td class="right">${pago.meses}</td></tr>
+      ${pago.atrasados > 0 ? `<tr><td class="left">Atrasados:</td><td class="right">${pago.atrasados}</td></tr>` : ""}
+    </table>
+
+    <div class="linea"></div>
+    <strong>TOTAL: RD$ ${pago.monto.toFixed(2)}</strong>
+    <div class="linea"></div>
+
+    <div class="footer">
+      ¡Gracias por preferirnos!<br>
+      ¡Vuelva pronto!
+    </div>
+  </div>
+
+  <script>
+    // 🖨️ Forzar impresión sin pausa visual
+    window.onload = function() {
+      document.body.style.marginTop = "0px";
+      window.print();
+      setTimeout(() => window.close(), 600);
+    };
+  </script>
+</body>
+</html>
+
+
   `;
 
   const blob = new Blob([ticketHTML], { type: 'text/html' });

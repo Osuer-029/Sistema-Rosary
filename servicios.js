@@ -426,143 +426,174 @@ btnCerrarFactura.onclick = () => modalFactura.style.display = "none";
 // ===============================================
 async function imprimirFacturaDirecta(cliente, pago) {
   try {
-    // 1) Crear HTML para impresión directa (ventana temporal)
     const fecha = new Date();
     const fechaStr = fecha.toLocaleDateString("es-DO");
     const horaStr = fecha.toLocaleTimeString("es-DO");
-    const logoPath = "logo rosary.jpg"; // archivo en la raíz del proyecto
 
-    // Tabla de contenido simple (ticket compacto)
+    // Convertir logo a base64 (para evitar errores de carga)
+    async function getBase64Logo(path) {
+      try {
+        const response = await fetch(path);
+        const blob = await response.blob();
+        return await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch {
+        return ""; // si falla, no interrumpe
+      }
+    }
+
+    const logoBase64 = await getBase64Logo("logo rosary.jpg");
+
+    // HTML del ticket compacto
     const ticketHTML = `
+      <!DOCTYPE html>
       <html>
       <head>
         <meta charset="utf-8">
         <title>Factura - ${cliente.nombre}</title>
         <style>
           @page { size: 80mm auto; margin: 0; }
-          body {
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 80mm;
             font-family: 'Courier New', monospace;
             font-size: 10pt;
-            margin: 0;
-            padding: 6px 4px;
-            width: 74mm;
-            box-sizing: border-box;
+            background: #fff;
           }
-          .center { text-align: center; }
-          .linea { border-top: 1px dashed #000; margin: 6px 0; }
-          .logo { width: 90px; height: auto; margin-bottom: 6px; display:block; margin-left:auto; margin-right:auto; }
-          table { width: 100%; border-collapse: collapse; margin-top:6px; }
-          td { padding: 2px 0; vertical-align: top; }
-          .left { text-align: left; }
-          .right { text-align: right; }
+          .ticket {
+            width: 74mm;
+            margin: 0 auto;
+            text-align: center;
+            line-height: 1.3;
+            padding: 4px 0;
+          }
+          .linea {
+            border-top: 1px dashed #000;
+            margin: 5px 0;
+          }
+          img.logo {
+            width: 100px;
+            height: auto;
+            display: block;
+            margin: 0 auto 4px auto;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            margin: 0 auto;
+          }
+          td {
+            padding: 2px 0;
+            word-wrap: break-word;
+          }
+          .left { text-align: left; width: 40%; }
+          .right { text-align: right; width: 60%; }
+          .footer {
+            margin-top: 8px;
+            font-size: 9pt;
+          }
         </style>
       </head>
       <body>
-        <div class="center">
-          <img src="${logoPath}" class="logo" alt="Logo Rosary">
+        <div class="ticket">
+          ${logoBase64 ? `<img src="${logoBase64}" alt="Logo Rosary" class="logo">` : ""}
           <strong>HELADERÍA ROSARY</strong><br>
           Villa González - Santiago<br>
           Tel: +1 (809) 790-4593<br>
           <div class="linea"></div>
-          <small>Fecha: ${fechaStr} - Hora: ${horaStr}</small><br>
+          <small>Fecha: ${fechaStr} — Hora: ${horaStr}</small><br>
           <div class="linea"></div>
-        </div>
 
-        <div style="margin-top:6px;">
           <table>
             <tr><td class="left">Cliente:</td><td class="right">${cliente.nombre}</td></tr>
             <tr><td class="left">Tel:</td><td class="right">${cliente.telefono || 'No disponible'}</td></tr>
             <tr><td class="left">Servicio:</td><td class="right">${cliente.servicio}${cliente.tipoServicio ? ' — ' + cliente.tipoServicio : ''}</td></tr>
             <tr><td class="left">Monto:</td><td class="right">RD$ ${pago.monto.toFixed(2)}</td></tr>
             <tr><td class="left">Meses:</td><td class="right">${pago.meses}</td></tr>
-            ${pago.atrasados > 0 ? `<tr><td class="left">Atrasados:</td><td class="right">${pago.atrasados}</td></tr>` : ''}
+            ${pago.atrasados > 0 ? `<tr><td class="left">Atrasados:</td><td class="right">${pago.atrasados}</td></tr>` : ""}
           </table>
+
+          <div class="linea"></div>
+          <strong>TOTAL: RD$ ${pago.monto.toFixed(2)}</strong>
+          <div class="linea"></div>
+
+          <div class="footer">
+            ¡Gracias por preferirnos!<br>
+            ¡Vuelva pronto!
+          </div>
         </div>
 
-        <div class="linea"></div>
-        <div class="center"><strong>TOTAL: RD$ ${pago.monto.toFixed(2)}</strong></div>
-        <div class="linea"></div>
-        <div class="center">¡Gracias por preferirnos!<br>Vuelva pronto :)</div>
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(() => window.close(), 600);
+          };
+        </script>
       </body>
       </html>
     `;
 
-    // Abrir ventana temporal para impresión (esto permite imprimir directo sin PDF)
+    // Imprimir directamente (sin mostrar nada al usuario)
     const printWin = window.open('', '', 'width=400,height=600');
     printWin.document.open();
     printWin.document.write(ticketHTML);
     printWin.document.close();
 
-    // Esperar a que cargue y mandar imprimir directo
-    printWin.onload = function () {
-      try {
-        printWin.focus();
-        printWin.print();
-      } catch (e) {
-        console.warn("Error al imprimir desde ventana:", e);
-      } finally {
-        setTimeout(() => { try { printWin.close(); } catch (e) {} }, 700);
-      }
-    };
-
-    // 2) Generar PDF con jsPDF y descargar automáticamente (copia)
-    // Solo se ejecuta si jsPDF está disponible
+    // 🧾 Generar copia PDF automática
     if (window.jspdf && window.jspdf.jsPDF) {
-      try {
-        const { jsPDF } = window.jspdf;
-        // Creamos un PDF con proporciones térmicas (en mm)
-        const doc = new jsPDF({ unit: "mm", format: [80, 120] }); // alto pequeño, luego ajustamos
-        let y = 8;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: "mm", format: [80, 120] });
+      let y = 8;
 
-        // Agregar logo (si carga)
-        const img = new Image();
-        img.src = logoPath;
-        await new Promise((resolve) => {
-          img.onload = resolve;
-          img.onerror = resolve; // continúa si falla
-        });
-        if (img && img.width) {
-          const logoW = 30; // mm
-          const centerX = 40 - (logoW / 2);
-          doc.addImage(img, "JPEG", centerX, y, logoW, (img.height / img.width) * logoW);
-          y += (img.height / img.width) * logoW + 2;
-        }
-
-        doc.setFont("Courier", "bold");
-        doc.setFontSize(11);
-        doc.text("HELADERÍA ROSARY", 40, y, { align: "center" });
-        y += 6;
-        doc.setFont("Courier", "normal");
-        doc.setFontSize(8);
-        doc.text("Villa González - Santiago", 40, y, { align: "center" }); y += 5;
-        doc.text("Tel: +1 (809) 790-4593", 40, y, { align: "center" }); y += 6;
-        doc.text("----------------------------------------", 40, y, { align: "center" }); y += 6;
-
-        doc.text(`Fecha: ${new Date().toLocaleDateString('es-DO')} Hora: ${new Date().toLocaleTimeString('es-DO')}`, 40, y, { align: "center" }); y += 6;
-        doc.text("----------------------------------------", 40, y, { align: "center" }); y += 6;
-
-        doc.setFontSize(9);
-        doc.text(`Cliente: ${cliente.nombre}`, 8, y); y += 5;
-        doc.text(`Tel: ${cliente.telefono || 'No disponible'}`, 8, y); y += 5;
-        doc.text(`Servicio: ${cliente.servicio}${cliente.tipoServicio ? ' — ' + cliente.tipoServicio : ''}`, 8, y); y += 6;
-        doc.text(`Monto: RD$ ${pago.monto.toFixed(2)}`, 8, y); y += 6;
-        if (pago.atrasados > 0) { doc.text(`Atrasados: ${pago.atrasados}`, 8, y); y += 6; }
-        doc.text("----------------------------------------", 40, y, { align: "center" }); y += 6;
-        doc.setFont("Courier", "bold");
-        doc.text(`TOTAL: RD$ ${pago.monto.toFixed(2)}`, 40, y, { align: "center" }); y += 8;
-        doc.setFont("Courier", "normal");
-        doc.text("¡Gracias por preferirnos!", 40, y, { align: "center" }); y += 6;
-        doc.text("Vuelva pronto!", 40, y, { align: "center" }); y += 6;
-
-        // ajustar alto real
-        doc.internal.pageSize.height = y + 6;
-
-        // guardar PDF automáticamente
-        const nombreArchivo = `Factura_Rosary_${(new Date()).toISOString().replace(/[:.]/g, "-")}.pdf`;
-        doc.save(nombreArchivo);
-      } catch (e) {
-        console.warn("No se pudo generar PDF con jsPDF:", e);
+      // Logo centrado
+      if (logoBase64) {
+        const logoW = 30;
+        const centerX = 40 - (logoW / 2);
+        doc.addImage(logoBase64, "JPEG", centerX, y, logoW, 20);
+        y += 22;
       }
+
+      // Encabezado
+      doc.setFont("Courier", "bold");
+      doc.setFontSize(11);
+      doc.text("HELADERÍA ROSARY", 40, y, { align: "center" }); y += 6;
+      doc.setFont("Courier", "normal");
+      doc.setFontSize(8);
+      doc.text("Villa González - Santiago", 40, y, { align: "center" }); y += 5;
+      doc.text("Tel: +1 (809) 790-4593", 40, y, { align: "center" }); y += 6;
+      doc.text("----------------------------------------", 40, y, { align: "center" }); y += 5;
+      doc.text(`Fecha: ${fechaStr}  Hora: ${horaStr}`, 40, y, { align: "center" }); y += 6;
+      doc.text("----------------------------------------", 40, y, { align: "center" }); y += 6;
+
+      // Texto centrado y compacto
+      doc.setFontSize(9);
+      const textoCentrado = (texto) => {
+        const textoAncho = doc.getTextWidth(texto);
+        const x = (80 - textoAncho) / 2;
+        doc.text(texto, x, y);
+        y += 5;
+      };
+
+      textoCentrado(`Cliente: ${cliente.nombre}`);
+      textoCentrado(`Tel: ${cliente.telefono || 'No disponible'}`);
+      textoCentrado(`Servicio: ${cliente.servicio}${cliente.tipoServicio ? ' — ' + cliente.tipoServicio : ''}`);
+      textoCentrado(`Monto: RD$ ${pago.monto.toFixed(2)}`);
+      if (pago.atrasados > 0) textoCentrado(`Atrasados: ${pago.atrasados}`);
+      textoCentrado("----------------------------------------");
+      doc.setFont("Courier", "bold");
+      textoCentrado(`TOTAL: RD$ ${pago.monto.toFixed(2)}`);
+      doc.setFont("Courier", "normal");
+      textoCentrado("¡Gracias por preferirnos!");
+      textoCentrado("¡Vuelva pronto!");
+
+      doc.internal.pageSize.height = y + 10;
+      const nombreArchivo = `Factura_Rosary_${new Date().toISOString().replace(/[:.]/g, "-")}.pdf`;
+      doc.save(nombreArchivo);
     }
 
   } catch (e) {
@@ -570,6 +601,7 @@ async function imprimirFacturaDirecta(cliente, pago) {
     alert("Ocurrió un error al intentar imprimir la factura.");
   }
 }
+
 
 // ===============================================
 // 9. ESTADO DE CUENTA FUNCIONAL
