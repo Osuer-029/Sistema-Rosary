@@ -295,80 +295,98 @@ function mostrarProductosSeleccionados(lista) {
 }
 
 
+// ... (código anterior)
+
 function imprimirTicket(listaProductos, cliente = {nombre: "General", telefono: "No disponible"}) {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "pt", format: [300, 1400] });
-    let y = 20;
 
-    // ENCABEZADO TIPO SERVICIOS
+    // Configuración de tamaño de papel térmico 80mm x 300mm (en puntos: 1mm ≈ 2.83465pt)
+    const anchoTicket = 80 * 2.83465; // 80mm
+    const altoMaximo = 300 * 2.83465; // 300mm (máximo)
+    const doc = new jsPDF({ unit: "pt", format: [anchoTicket, altoMaximo] });
+
+    let y = 20;
+    let total = 0;
+
+    // === ENCABEZADO ===
     doc.setFont("Courier", "bold");
     doc.setFontSize(12);
-    doc.text("HELADERÍA ROSARY", 150, y, { align: "center" }); y += 18;
-    doc.setFont("Courier", "normal");
-    doc.setFontSize(9);
-    doc.text("Villa González - Santiago", 150, y, { align: "center" }); y += 12;
-    doc.text("Tel: +1 (809) 790-4593", 150, y, { align: "center" }); y += 12;
+    doc.text("HELADERÍA ROSARY", anchoTicket / 2, y, { align: "center" }); y += 18;
 
-    doc.setFont("Courier", "bold");
-    doc.setFontSize(10);
-    doc.text("RECIBO DE PRODUCTOS", 150, y, { align: "center" }); y += 15;
     doc.setFont("Courier", "normal");
     doc.setFontSize(9);
+    doc.text("Villa González - Santiago", anchoTicket / 2, y, { align: "center" }); y += 12;
+    doc.text("Tel: +1 (809) 790-4593", anchoTicket / 2, y, { align: "center" }); y += 12;
+    doc.text("----------------------------------------", anchoTicket / 2, y, { align: "center" }); y += 12;
 
     const fecha = new Date();
     const fechaStr = fecha.toLocaleDateString('es-ES');
     const horaStr = fecha.toLocaleTimeString('es-ES');
-    doc.text(`Fecha: ${fechaStr}   Hora: ${horaStr}`, 150, y, { align: "center" }); y += 15;
-    doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
+    doc.text(`Fecha: ${fechaStr}  Hora: ${horaStr}`, anchoTicket / 2, y, { align: "center" }); y += 12;
+    doc.text("----------------------------------------", anchoTicket / 2, y, { align: "center" }); y += 12;
 
-
-    // ENCABEZADO DE PRODUCTOS
+    // === LISTADO DE PRODUCTOS ===
     doc.setFont("Courier", "bold");
-    doc.text("Producto", 15, y);
-    doc.text("Cant", 140, y, { align: "center" });
-    doc.text("P.Unit", 190, y, { align: "center" });
-    doc.text("Total", 270, y, { align: "right" });
+    doc.text("Producto", 10, y);
+    doc.text("Cant", 100, y, { align: "center" });
+    doc.text("P.Unit", 150, y, { align: "center" });
+    doc.text("Total", anchoTicket - 10, y, { align: "right" });
     y += 12;
+
     doc.setFont("Courier", "normal");
-    doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
+    doc.text("----------------------------------------", anchoTicket / 2, y, { align: "center" }); y += 12;
 
-    // LISTA DE PRODUCTOS
-    let total = 0;
     listaProductos.forEach(p => {
-        const nombre = p.nombre.length > 16 ? p.nombre.slice(0,16)+"..." : p.nombre;
-        const cant = p.cantidad || 1;
-        const precioUnit = p.precio.toFixed(2);
-        const subtotal = (p.precio * cant).toFixed(2);
+        const nombre = p.nombre.length > 16 ? p.nombre.slice(0, 16) + "..." : p.nombre;
+        const cantidad = p.cantidad || 1;
+        const precio = Number(p.precio).toFixed(2);
+        const subtotal = (cantidad * p.precio).toFixed(2);
 
-        doc.text(nombre.padEnd(16), 15, y);
-        doc.text(String(cant).padStart(3), 140, y, { align: "center" });
-        doc.text(precioUnit.padStart(6), 190, y, { align: "center" });
-        doc.text(subtotal.padStart(6), 270, y, { align: "right" });
-
-        total += p.precio * cant;
-        y += 14;
+        doc.text(nombre, 10, y);
+        doc.text(String(cantidad), 100, y, { align: "center" });
+        doc.text(precio, 150, y, { align: "center" });
+        doc.text(subtotal, anchoTicket - 10, y, { align: "right" });
+        y += 12;
+        total += cantidad * p.precio;
     });
 
-    doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
-
-    // TOTAL
+    doc.text("----------------------------------------", anchoTicket / 2, y, { align: "center" }); y += 14;
     doc.setFont("Courier", "bold");
-    doc.text(`TOTAL: RD$ ${total.toFixed(2)}`, 150, y, { align: "center" }); y += 20;
+    doc.text(`TOTAL: RD$ ${total.toFixed(2)}`, anchoTicket / 2, y, { align: "center" }); y += 20;
 
-    // PIE DE TICKET
+    // === PIE ===
     doc.setFont("Courier", "normal");
     doc.setFontSize(9);
-    doc.text("¡Gracias por preferirnos!", 150, y, { align: "center" }); y += 12;
-    doc.text("Vuelva pronto!", 150, y, { align: "center" }); y += 12;
-    doc.text("----------------------------------------", 150, y, { align: "center" });
+    doc.text("¡Gracias por preferirnos!", anchoTicket / 2, y, { align: "center" }); y += 12;
+    doc.text("Vuelva pronto!", anchoTicket / 2, y, { align: "center" }); y += 12;
+    doc.text("----------------------------------------", anchoTicket / 2, y, { align: "center" }); y += 10;
 
-    // GUARDAR PDF
-    const timestamp = fecha.getTime();
-    doc.save(`ticket-${timestamp}.pdf`);
+    // === AJUSTAR ALTO REAL DEL CONTENIDO ===
+    const altoReal = Math.min(y + 20, altoMaximo); // Ajusta hasta donde llega el texto
+    doc.internal.pageSize.height = altoReal; // Redimensionar el PDF al contenido
+
+    // === OPCIONES DE IMPRESIÓN ===
+    doc.autoPrint();
+
+    // Crea un iframe invisible y lanza la impresión directamente sin abrir nueva pestaña
+    const pdfData = doc.output('datauristring');
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.src = pdfData;
+    document.body.appendChild(iframe);
+
+    // Espera a que el PDF cargue y lanza la impresión automáticamente
+    iframe.onload = function() {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print({ 
+            scale: 0.8, // Escala al 80%
+        });
+    };
 }
-
-
-
 
 
 
