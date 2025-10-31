@@ -5,9 +5,61 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Heladería Rosary</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Flatpickr CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+  <style>
+    /* 💅 Estilo de la caja de totales */
+    .totales-box {
+      margin-top: 12px;
+      padding: 10px;
+      background: #fff9f5;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      width: 95%;
+      font-family: 'Courier New', monospace;
+    }
+    .totales-box label {
+      display: block;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+    .totales-box input {
+      width: 100%;
+      padding: 5px;
+      margin-top: 3px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      text-align: right;
+    }
+    .total-line {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #444;
+      text-align: right;
+    }
+
+    /* 🔹 Botón imprimir */
+    .btn-imprimir {
+      margin-top: 10px;
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      width: 100%;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn-imprimir:hover {
+      background: #218838;
+    }
+  </style>
 </head>
+
 <body>
 <header>
   <h1>🍦 Heladería Rosary</h1>
@@ -19,6 +71,7 @@
 </header>
 
 <main class="main-contenedor">
+  <!-- 🧃 Panel izquierdo -->
   <section class="panel-izquierdo">
     <div class="titulo-buscador">
       <h2>Productos Disponibles</h2>
@@ -31,13 +84,30 @@
     </div>
   </section>
 
+  <!-- 🍦 Panel derecho -->
   <section class="panel-derecho">
     <h2>Productos Escaneados</h2>
     <div id="productos-seleccionados" class="lista-seleccion"></div>
+
+    <!-- 💵 Caja de totales y devuelta -->
+    <div class="totales-box">
+      <div class="total-line">
+        Total: <span id="totalFactura">RD$ 0.00</span>
+      </div>
+
+      <label for="pagoCliente">💵 Dinero recibido:</label>
+      <input type="number" id="pagoCliente" placeholder="Ej: 500">
+
+      <label for="devueltaCliente">💰 Devuelta:</label>
+      <input type="text" id="devueltaCliente" readonly placeholder="RD$ 0.00">
+    </div>
+
+    <!-- 🔹 Botón de imprimir factura -->
+    <button id="btn-imprimir-factura" class="btn-imprimir">🖨️ Imprimir Factura</button>
   </section>
 </main>
 
-<!-- Modal Facturación -->
+<!-- 🧾 Modal Facturación -->
 <div id="facturacion" class="modal">
   <div class="fact-panel">
     <span id="btn-cerrar-factura" class="close">&times;</span>
@@ -58,35 +128,58 @@
   </div>
 </div>
 
-
-
-
-<!-- Librerías -->
- 
+<!-- 📚 Librerías -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script type="module" src="script.js"></script>
 
-<!-- Scripts adicionales -->
+<!-- ⚙️ Script principal -->
 <script>
-  document.getElementById("btn-servicios").addEventListener("click", () => {
-    window.open("servicios.html", "_blank");
-  });
+  // 🔁 Calcular devuelta automáticamente
+  function configurarDevuelta() {
+    const pagoInput = document.getElementById("pagoCliente");
+    const devueltaInput = document.getElementById("devueltaCliente");
+    const totalElem = document.getElementById("totalFactura");
 
-  document.getElementById('btnCuadreGeneral').addEventListener('click', () => {
-    window.open('cuadre.html', '_blank');
-  });
+    function actualizarDevuelta() {
+      const totalTexto = totalElem.textContent.replace(/[^0-9.]/g, "");
+      const total = parseFloat(totalTexto) || 0;
+      const pago = parseFloat(pagoInput.value) || 0;
+      const devuelta = pago - total;
 
-  document.getElementById('btn-abrir-inventario').addEventListener('click', () => {
-    window.open('inventario.html', '_blank');
-  });
+      if (pago === 0) {
+        devueltaInput.value = "RD$ 0.00";
+        devueltaInput.style.color = "black";
+        return;
+      }
 
-  document.getElementById('btn-recibo').addEventListener('click', () => {
-    window.open('recibo.html', '_blank');
-  });
+      if (devuelta >= 0) {
+        devueltaInput.value = `RD$ ${devuelta.toFixed(2)}`;
+        devueltaInput.style.color = "green";
+      } else {
+        devueltaInput.value = `Faltan RD$ ${(Math.abs(devuelta)).toFixed(2)}`;
+        devueltaInput.style.color = "red";
+      }
+    }
 
-  document.getElementById('btn-historial').addEventListener('click', () => {
-    window.open('historial.html', '_blank');
+    // Escucha cuando el usuario escribe o cambia el pago
+    pagoInput.addEventListener("input", actualizarDevuelta);
+
+    // Escucha cuando cambia el total (por ejemplo, al agregar productos)
+    const observer = new MutationObserver(actualizarDevuelta);
+    observer.observe(totalElem, { childList: true, subtree: true });
+  }
+
+  // 🧠 Inicializar cuando cargue todo
+  document.addEventListener("DOMContentLoaded", () => {
+    configurarDevuelta();
+
+    // Navegación botones
+    document.getElementById("btn-servicios").addEventListener("click", () => window.open("servicios.html", "_blank"));
+    document.getElementById('btnCuadreGeneral').addEventListener('click', () => window.open('cuadre.html', '_blank'));
+    document.getElementById('btn-abrir-inventario').addEventListener('click', () => window.open('inventario.html', '_blank'));
+    document.getElementById('btn-recibo').addEventListener('click', () => window.open('recibo.html', '_blank'));
+    document.getElementById('btn-historial').addEventListener('click', () => window.open('historial.html', '_blank'));
   });
 </script>
 </body>

@@ -195,115 +195,96 @@ btnPrev.addEventListener("click", () => {
 // ================================
 // Mostrar productos seleccionados con control de cantidad y total
 // ================================
+// ================================
+// Mostrar productos seleccionados (solo lista + total)
+// ================================
 function mostrarProductosSeleccionados(lista) {
-    contenedorSeleccionados.innerHTML = "";
-    let total = 0;
+  contenedorSeleccionados.innerHTML = "";
+  let total = 0;
 
-    // Agrupar productos por id para contar cantidad
-    const productosAgrupados = {};
-    lista.forEach(p => {
-        if (productosAgrupados[p.id]) {
-            productosAgrupados[p.id].cantidad += 1;
-        } else {
-            productosAgrupados[p.id] = { ...p, cantidad: 1 };
-        }
-    });
+  // Agrupar productos por id para contar cantidad
+  const productosAgrupados = {};
+  lista.forEach(p => {
+    if (productosAgrupados[p.id]) {
+      productosAgrupados[p.id].cantidad += 1;
+    } else {
+      productosAgrupados[p.id] = { ...p, cantidad: 1 };
+    }
+  });
 
-    Object.values(productosAgrupados).forEach(p => {
-        const div = document.createElement("div");
-        div.className = "producto-cuadro";
-        div.innerHTML = `
-            <div class="producto-info">
-                <img src="${p.imagen}" alt="${p.nombre}" class="producto-mini">
-                <div class="producto-detalles">
-                    <span class="nombre">${p.nombre}</span>
-                    <span class="detalle">RD$ ${p.precio.toFixed(2)}</span>
-                </div>
-            </div>
-            <div class="cantidad-control">
-                <button class="btn-menos">➖</button>
-                <span class="cantidad">${p.cantidad}</span>
-                <button class="btn-mas">➕</button>
-                <button class="btn-quitar">❌</button>
-            </div>
-        `;
-        contenedorSeleccionados.appendChild(div);
-
-        total += p.precio * p.cantidad;
-
-        // Botones de control de cantidad
-        const btnMas = div.querySelector(".btn-mas");
-        const btnMenos = div.querySelector(".btn-menos");
-        const btnQuitar = div.querySelector(".btn-quitar");
-
-        btnMas.addEventListener("click", () => {
-            productosSeleccionados.push(p);
-            mostrarProductosSeleccionados(productosSeleccionados);
-        });
-
-        btnMenos.addEventListener("click", () => {
-            const index = productosSeleccionados.findIndex(prod => prod.id === p.id);
-            if (index !== -1) productosSeleccionados.splice(index, 1);
-            mostrarProductosSeleccionados(productosSeleccionados);
-        });
-
-        btnQuitar.addEventListener("click", () => {
-            productosSeleccionados = productosSeleccionados.filter(prod => prod.id !== p.id);
-            mostrarProductosSeleccionados(productosSeleccionados);
-        });
-    });
-
-    // Mostrar total y botón imprimir
-    const totalDiv = document.createElement("div");
-    totalDiv.className = "total-pago";
-    totalDiv.innerHTML = `
-        <strong>Total: RD$ ${total.toFixed(2)}</strong>
-        <button id="btnImprimirTicket" class="btn-imprimir">🧾 Imprimir Ticket</button>
+  // Renderizar cada producto
+  Object.values(productosAgrupados).forEach(p => {
+    const div = document.createElement("div");
+    div.className = "producto-cuadro";
+    div.innerHTML = `
+      <div class="producto-info">
+        <img src="${p.imagen || 'https://via.placeholder.com/60'}" alt="${p.nombre}" class="producto-mini">
+        <div class="producto-detalles">
+          <span class="nombre">${p.nombre}</span>
+          <span class="detalle">RD$ ${p.precio.toFixed(2)}</span>
+        </div>
+      </div>
+      <div class="cantidad-control">
+        <button class="btn-menos">➖</button>
+        <span class="cantidad">${p.cantidad}</span>
+        <button class="btn-mas">➕</button>
+        <button class="btn-quitar">❌</button>
+      </div>
     `;
-    contenedorSeleccionados.appendChild(totalDiv);
+    contenedorSeleccionados.appendChild(div);
 
-    document.getElementById("btnImprimirTicket").addEventListener("click", async () => {
-    const listaParaFactura = Object.values(productosAgrupados);
+    total += p.precio * p.cantidad;
 
-    // Calcular total
-    let total = listaParaFactura.reduce((sum, p) => sum + p.precio * p.cantidad, 0);
+    // Botones de control
+    const btnMas = div.querySelector(".btn-mas");
+    const btnMenos = div.querySelector(".btn-menos");
+    const btnQuitar = div.querySelector(".btn-quitar");
 
-    // Crear objeto factura
-    const factura = {
-        cliente: "Cliente general", // o el nombre que ingreses en inputCliente
-        productos: listaParaFactura.map(p => ({
-            nombre: p.nombre,
-            precio: p.precio,
-            cantidad: p.cantidad
-        })),
-        total: total,
-        fechaFactura: new Date().toISOString().slice(0, 10)
-    };
+    btnMas.addEventListener("click", () => {
+      productosSeleccionados.push(p);
+      mostrarProductosSeleccionados(productosSeleccionados);
+    });
 
-    // Guardar en Firestore
-    await addFactura(factura);
+    btnMenos.addEventListener("click", () => {
+      const index = productosSeleccionados.findIndex(prod => prod.id === p.id);
+      if (index !== -1) productosSeleccionados.splice(index, 1);
+      mostrarProductosSeleccionados(productosSeleccionados);
+    });
 
-    // Imprimir ticket
-    imprimirTicket(listaParaFactura);
+    btnQuitar.addEventListener("click", () => {
+      productosSeleccionados = productosSeleccionados.filter(prod => prod.id !== p.id);
+      mostrarProductosSeleccionados(productosSeleccionados);
+    });
+  });
 
-    // Limpiar productos seleccionados
-    productosSeleccionados = [];
-    mostrarProductosSeleccionados(productosSeleccionados);
-    mostrarMensajeVisual("✅ Factura registrada y productos limpiados", "success");
-});
+  // 🔹 Actualiza el total en la interfaz (HTML)
+  const totalElem = document.getElementById("totalFactura");
+  totalElem.textContent = `RD$ ${total.toFixed(2)}`;
 
+  // ⚡ Dispara un evento personalizado para recalcular la devuelta
+  const event = new Event("totalActualizado");
+  document.dispatchEvent(event);
 }
+
+
+// 🔹 Obtener dinero recibido y devuelta
+const pagoInput = document.getElementById("pagoCliente");
+const devueltaInput = document.getElementById("devueltaCliente");
+
+const dineroRecibido = parseFloat(pagoInput?.value) || 0;
+const devuelta = parseFloat(devueltaInput?.value.replace(/[^0-9.-]/g, "")) || 0;
+
 
 
 // ... (código anterior)
 
-async function imprimirTicket(listaProductos, cliente = { nombre: "General", telefono: "No disponible" }) {
+async function imprimirTicket(listaProductos, cliente = { nombre: "General" }) {
   if (!listaProductos || listaProductos.length === 0) {
     alert("No hay productos en la lista para imprimir.");
     return;
   }
 
-  // 🖼️ Convertir logo a Base64 (para que se vea en cualquier navegador)
+  // Convertir logo a Base64
   async function getBase64Image(url) {
     try {
       const res = await fetch(url);
@@ -318,157 +299,115 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
       return "";
     }
   }
+  const logoBase64 = await getBase64Image("logo rosary.jpg");
 
-  const logoBase64 = await getBase64Image("logo rosary.jpg"); // asegúrate que el archivo exista junto al index.html
-
-  // 🧮 Calcular total
-  let total = 0;
+  // 🔹 Agrupar productos y contar cantidad
+  const productosAgrupados = {};
   listaProductos.forEach(p => {
-    total += (p.precio || 0) * (p.cantidad || 1);
+    if (productosAgrupados[p.id]) {
+      productosAgrupados[p.id].cantidad += 1;
+    } else {
+      productosAgrupados[p.id] = { ...p, cantidad: 1 };
+    }
   });
 
-  // 🕒 Fecha y hora
+  const productosFinal = Object.values(productosAgrupados);
+
+  // 🔹 Calcular total
+  let total = 0;
+  productosFinal.forEach(p => {
+    total += (p.precio || 0) * p.cantidad;
+  });
+
+  // 🔹 Dinero recibido y devuelta
+  const pagoInput = document.getElementById("pagoCliente");
+  const devueltaInput = document.getElementById("devueltaCliente");
+  const dineroRecibido = parseFloat(pagoInput?.value) || 0;
+  const devuelta = parseFloat(devueltaInput?.value.replace(/[^0-9.-]/g, "")) || 0;
+
   const fecha = new Date();
   const fechaStr = fecha.toLocaleDateString("es-DO");
   const horaStr = fecha.toLocaleTimeString("es-DO");
 
-  // ==============================
-  // 🧾 Estructura del ticket HTML
-  // ==============================
   const ticketHTML = `
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Ticket - Heladería Rosary</title>
-  <style>
-    @page { size: 80mm auto; margin: 0; }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 80mm;
-      background: #fff;
-    }
-
-    /* 🔥 Elimina el espacio blanco superior */
-    body::before {
-      content: "";
-      display: block;
-      height: 0;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Courier New', monospace;
-      font-size: 10pt;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-    }
-
-    .ticket {
-      width: 72mm;
-      text-align: center;
-      line-height: 1.3;
-      margin: 0 auto;
-      padding: 0;
-    }
-
-    img.logo {
-      width: 110px;
-      height: auto;
-      display: block;
-      margin: 0 auto 4px auto;
-    }
-
-    .linea {
-      border-top: 1px dashed #000;
-      margin: 3px 0;
-    }
-
-    table {
-      width: 92%;
-      border-collapse: collapse;
-      table-layout: fixed;
-      margin: 0 auto;
-    }
-
-    td {
-      padding: 1px 0;
-      word-wrap: break-word;
-    }
-
-    .producto { width: 48%; text-align: left; }
-    .cantidad { width: 20%; text-align: center; }
-    .total { width: 25%; text-align: right; }
-
-    .footer {
-      margin-top: 6px;
-      font-size: 9pt;
-    }
-  </style>
+<meta charset="utf-8">
+<title>Ticket - Heladería Rosary</title>
+<style>
+@page { size: 80mm auto; margin: 0; }
+html, body { margin: 0; padding: 0; width: 80mm; background: #fff; }
+body { font-family: 'Courier New', monospace; font-size: 10pt; display: flex; justify-content: center; align-items: flex-start; }
+.ticket { width: 72mm; text-align: center; line-height: 1.3; margin: 0 auto; padding: 0; }
+img.logo { width: 110px; height: auto; display: block; margin: 0 auto 4px auto; }
+.linea { border-top: 1px dashed #000; margin: 3px 0; }
+table { width: 92%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+td { padding: 1px 0; word-wrap: break-word; }
+.producto { width: 48%; text-align: left; }
+.cantidad { width: 20%; text-align: center; }
+.total { width: 25%; text-align: right; }
+.footer { margin-top: 6px; font-size: 9pt; }
+</style>
 </head>
 <body>
-  <div class="ticket">
-    ${logoBase64 ? `<img src="${logoBase64}" alt="Logo Rosary" class="logo">` : ""}
-    <strong>HELADERÍA ROSARY</strong><br>
-    Villa González - Santiago<br>
-    Tel: +1 (809) 790-4593<br>
-    <div class="linea"></div>
-    <small>Fecha: ${fechaStr} - Hora: ${horaStr}</small><br>
-    <div class="linea"></div>
+<div class="ticket">
+  ${logoBase64 ? `<img src="${logoBase64}" alt="Logo Rosary" class="logo">` : ""}
+  <strong>HELADERÍA ROSARY</strong><br>
+  Villa González - Santiago<br>
+  Tel: +1 (809) 790-4593<br>
+  <div class="linea"></div>
+  <small>Fecha: ${fechaStr} - Hora: ${horaStr}</small><br>
+  <div class="linea"></div>
 
-    <table>
-      <thead>
+  <table>
+    <thead>
+      <tr>
+        <td class="producto"><b>Producto</b></td>
+        <td class="cantidad"><b>Cant</b></td>
+        <td class="total"><b>Total</b></td>
+      </tr>
+    </thead>
+    <tbody>
+      ${productosFinal.map(p => `
         <tr>
-          <td class="producto"><b>Producto</b></td>
-          <td class="cantidad"><b>Cant</b></td>
-          <td class="total"><b>Total</b></td>
+          <td class="producto">${p.nombre.length > 16 ? p.nombre.slice(0,16) + "…" : p.nombre}</td>
+          <td class="cantidad">${p.cantidad}</td>
+          <td class="total">RD$ ${(p.precio * p.cantidad).toFixed(2)}</td>
         </tr>
-      </thead>
-      <tbody>
-        ${listaProductos.map(p => `
-          <tr>
-            <td class="producto">${p.nombre.length > 16 ? p.nombre.slice(0, 16) + "…" : p.nombre}</td>
-            <td class="cantidad">${p.cantidad}</td>
-            <td class="total">RD$ ${(p.precio * p.cantidad).toFixed(2)}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
+      `).join('')}
+    </tbody>
+  </table>
 
-    <div class="linea"></div>
-    <strong>TOTAL: RD$ ${total.toFixed(2)}</strong>
-    <div class="linea"></div>
+  <div class="linea"></div>
+  <strong>TOTAL: RD$ ${total.toFixed(2)}</strong><br>
+  <strong>Dinero recibido: RD$ ${dineroRecibido.toFixed(2)}</strong><br>
+  <strong>Devuelta: RD$ ${devuelta.toFixed(2)}</strong>
+  <div class="linea"></div>
 
-    <div class="footer">
-      ¡Gracias por preferirnos!<br>
-      ¡Vuelva pronto!
-    </div>
+  <div class="footer">
+    ¡Gracias por preferirnos!<br>
+    ¡Vuelva pronto!
   </div>
+</div>
 
-  <script>
-    // 🖨️ Imprimir directo sin márgenes y cerrar ventana
-    window.onload = function() {
-      document.body.style.marginTop = "0px";
-      window.print();
-      setTimeout(() => window.close(), 600);
-    };
-  </script>
+<script>
+window.onload = function() {
+  document.body.style.marginTop = "0px";
+  window.print();
+  setTimeout(() => window.close(), 600);
+};
+</script>
 </body>
 </html>
 `;
 
-  // ==============================
-  // 🖨️ Crear ventana e imprimir
-  // ==============================
   const printWin = window.open("", "", "width=400,height=800");
   printWin.document.open();
   printWin.document.write(ticketHTML);
   printWin.document.close();
 }
+
 
 
 
@@ -547,7 +486,42 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+
+// ================================
+// Botón Imprimir Factura
+// ================================
+document.addEventListener('DOMContentLoaded', () => {
+  const btnImprimir = document.getElementById("btn-imprimir-factura");
+  const inputCliente = document.getElementById("inputCliente");
+
+  btnImprimir.addEventListener("click", async () => {
+    const cliente = {
+      nombre: inputCliente?.value || "General"
+    };
+
+    // Imprimir ticket
+    await imprimirTicket(productosSeleccionados, cliente);
+
+    // 🔹 Limpiar productos seleccionados después de imprimir
+    productosSeleccionados = [];
+    mostrarProductosSeleccionados(productosSeleccionados); // Actualiza la interfaz
+    document.getElementById("pagoCliente").value = ""; // Limpiar pago
+    document.getElementById("devueltaCliente").value = "RD$ 0.00"; // Reset devuelta
+  });
+});
+
+
+
 // ================================
 // Inicialización
 // ================================
 document.addEventListener('DOMContentLoaded', cargarProductosRealtime);
+
+// 🔁 Recalcular devuelta cuando cambie el total visual
+document.addEventListener("totalActualizado", () => {
+  const pagoClienteInput = document.getElementById("pagoCliente");
+  if (pagoClienteInput) {
+    pagoClienteInput.dispatchEvent(new Event("input"));
+  }
+});
+

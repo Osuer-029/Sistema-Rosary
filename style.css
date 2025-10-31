@@ -462,3 +462,18 @@ hr {
 
 
 
+.total-section {
+  margin-top: 10px;
+  border-top: 1px dashed #ccc;
+  padding-top: 10px;
+}
+
+.total-section input {
+  width: 100%;
+  padding: 6px;
+  margin-top: 4px;
+  font-size: 1rem;
+  text-align: right;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
