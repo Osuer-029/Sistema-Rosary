@@ -297,106 +297,132 @@ function mostrarProductosSeleccionados(lista) {
 
 // ... (código anterior)
 
-function imprimirTicket(listaProductos, cliente = {nombre: "General", telefono: "No disponible"}) {
-    const { jsPDF } = window.jspdf;
+function imprimirTicket(listaProductos, cliente = { nombre: "General", telefono: "No disponible" }) {
+  const { jsPDF } = window.jspdf;
 
-    // Tamaño de ticket 80 mm x 300 mm máximo
-    const anchoTicket = 80 * 2.83465; // 80mm en puntos
-    const altoMaximo = 300 * 2.83465; // 300mm máximo
-    const doc = new jsPDF({ unit: "pt", format: [anchoTicket, altoMaximo] });
+  // Formato 80mm de ancho (~226pt) y 300mm de alto (~850pt)
+  const doc = new jsPDF({ unit: "pt", format: [226.77, 850] });
+  const ancho = 226.77;
+  let y = 20;
+  let total = 0;
 
-    let y = 20;
-    let total = 0;
+  // Cargar el logo primero y esperar
+  const logo = new Image();
+  logo.src = "logo rosary.jpg"; // debe estar en la misma carpeta
 
-    // === CARGAR LOGO LOCAL (mismo nivel que script.js) ===
-    const img = new Image();
-    img.src = "logo rosary.jpg"; // ✅ tu logo directamente en la raíz del proyecto
+  logo.onload = function () {
+    try {
+      // === Dibuja el logo ===
+      const logoAncho = 120;
+      const logoAlto = (logo.height / logo.width) * logoAncho;
+      const logoX = (ancho - logoAncho) / 2;
+      doc.addImage(logo, "JPEG", logoX, y, logoAncho, logoAlto);
+      y += logoAlto + 10;
 
-    img.onload = function() {
-        // Ajustar ancho y alto proporcional del logo
-        const logoAncho = anchoTicket * 0.8;
-        const logoX = (anchoTicket - logoAncho) / 2;
-        const logoAlto = (img.height / img.width) * logoAncho;
+      // === Encabezado ===
+      doc.setFont("Courier", "bold");
+      doc.setFontSize(12);
+      doc.text("HELADERÍA ROSARY", ancho / 2, y, { align: "center" });
+      y += 18;
 
-        // Insertar logo
-        doc.addImage(img, "JPEG", logoX, y, logoAncho, logoAlto);
-        y += logoAlto + 10;
+      doc.setFont("Courier", "normal");
+      doc.setFontSize(9);
+      doc.text("Villa González - Santiago", ancho / 2, y, { align: "center" });
+      y += 12;
+      doc.text("Tel: +1 (809) 790-4593", ancho / 2, y, { align: "center" });
+      y += 12;
 
-        // === ENCABEZADO ===
-        doc.setFont("Courier", "bold");
-        doc.setFontSize(12);
-        doc.text("HELADERÍA ROSARY", anchoTicket / 2, y, { align: "center" }); y += 18;
+      doc.text("----------------------------------------", ancho / 2, y, { align: "center" });
+      y += 12;
 
-        doc.setFont("Courier", "normal");
-        doc.setFontSize(9);
-        doc.text("Villa González - Santiago", anchoTicket / 2, y, { align: "center" }); y += 12;
-        doc.text("Tel: +1 (809) 790-4593", anchoTicket / 2, y, { align: "center" }); y += 12;
-        doc.text("----------------------------------------", anchoTicket / 2, y, { align: "center" }); y += 12;
+      const fecha = new Date();
+      const fechaStr = fecha.toLocaleDateString("es-ES");
+      const horaStr = fecha.toLocaleTimeString("es-ES");
 
-        const fecha = new Date();
-        const fechaStr = fecha.toLocaleDateString('es-ES');
-        const horaStr = fecha.toLocaleTimeString('es-ES');
-        doc.text(`Fecha: ${fechaStr}  Hora: ${horaStr}`, anchoTicket / 2, y, { align: "center" }); y += 12;
-        doc.text("----------------------------------------", anchoTicket / 2, y, { align: "center" }); y += 12;
+      doc.text(`Fecha: ${fechaStr}  Hora: ${horaStr}`, ancho / 2, y, { align: "center" });
+      y += 15;
+      doc.text("----------------------------------------", ancho / 2, y, { align: "center" });
+      y += 12;
 
-        // === PRODUCTOS ===
-        doc.setFont("Courier", "bold");
-        doc.text("Producto", 10, y);
-        doc.text("Cant", 100, y, { align: "center" });
-        doc.text("P.Unit", 150, y, { align: "center" });
-        doc.text("Total", anchoTicket - 10, y, { align: "right" });
-        y += 12;
+      // === Productos ===
+      doc.setFont("Courier", "bold");
+      doc.text("Producto", 10, y);
+      doc.text("Cant", 100, y, { align: "center" });
+      doc.text("P.Unit", 160, y, { align: "center" });
+      doc.text("Total", ancho - 10, y, { align: "right" });
+      y += 12;
+      doc.setFont("Courier", "normal");
+      doc.text("----------------------------------------", ancho / 2, y, { align: "center" });
+      y += 12;
 
-        doc.setFont("Courier", "normal");
-        doc.text("----------------------------------------", anchoTicket / 2, y, { align: "center" }); y += 12;
+      listaProductos.forEach(p => {
+        const nombre = p.nombre.length > 12 ? p.nombre.slice(0, 12) + "..." : p.nombre;
+        const cant = p.cantidad || 1;
+        const precioUnit = Number(p.precio).toFixed(2);
+        const subtotal = (cant * p.precio).toFixed(2);
 
-        listaProductos.forEach(p => {
-            const nombre = p.nombre.length > 16 ? p.nombre.slice(0, 16) + "..." : p.nombre;
-            const cantidad = p.cantidad || 1;
-            const precio = Number(p.precio).toFixed(2);
-            const subtotal = (cantidad * p.precio).toFixed(2);
+        doc.text(nombre, 10, y);
+        doc.text(String(cant), 100, y, { align: "center" });
+        doc.text(precioUnit, 160, y, { align: "center" });
+        doc.text(subtotal, ancho - 10, y, { align: "right" });
 
-            doc.text(nombre, 10, y);
-            doc.text(String(cantidad), 100, y, { align: "center" });
-            doc.text(precio, 150, y, { align: "center" });
-            doc.text(subtotal, anchoTicket - 10, y, { align: "right" });
-            y += 12;
-            total += cantidad * p.precio;
-        });
+        total += cant * p.precio;
+        y += 14;
+      });
 
-        doc.text("----------------------------------------", anchoTicket / 2, y, { align: "center" }); y += 14;
-        doc.setFont("Courier", "bold");
-        doc.text(`TOTAL: RD$ ${total.toFixed(2)}`, anchoTicket / 2, y, { align: "center" }); y += 20;
+      doc.text("----------------------------------------", ancho / 2, y, { align: "center" });
+      y += 12;
 
-        // === PIE DE PÁGINA ===
-        doc.setFont("Courier", "normal");
-        doc.setFontSize(9);
-        doc.text("¡Gracias por preferirnos!", anchoTicket / 2, y, { align: "center" }); y += 12;
-        doc.text("Vuelva pronto!", anchoTicket / 2, y, { align: "center" }); y += 12;
-        doc.text("----------------------------------------", anchoTicket / 2, y, { align: "center" }); y += 10;
+      doc.setFont("Courier", "bold");
+      doc.text(`TOTAL: RD$ ${total.toFixed(2)}`, ancho / 2, y, { align: "center" });
+      y += 20;
 
-        // === AJUSTE DINÁMICO DE ALTURA ===
-        const altoReal = Math.min(y + 20, altoMaximo);
-        doc.internal.pageSize.height = altoReal;
+      // === Pie ===
+      doc.setFont("Courier", "normal");
+      doc.setFontSize(9);
+      doc.text("¡Gracias por preferirnos!", ancho / 2, y, { align: "center" });
+      y += 12;
+      doc.text("Vuelva pronto!", ancho / 2, y, { align: "center" });
+      y += 12;
+      doc.text("----------------------------------------", ancho / 2, y, { align: "center" });
 
-        // === IMPRIMIR DIRECTAMENTE SIN NUEVA PÁGINA ===
-        doc.autoPrint();
+      // Ajustar la altura real
+      doc.internal.pageSize.height = y + 20;
 
-        const pdfData = doc.output('datauristring');
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'fixed';
-        iframe.style.right = '0';
-        iframe.style.bottom = '0';
-        iframe.style.width = '0';
-        iframe.style.height = '0';
-        iframe.src = pdfData;
-        document.body.appendChild(iframe);
+      // === Generar Blob y preparar para impresión ===
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
 
-        iframe.onload = function() {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print({ scale: 0.8 });
-        };
-    };
+      // === Crear iframe invisible para imprimir ===
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "none";
+      iframe.src = pdfUrl;
+      document.body.appendChild(iframe);
+
+      iframe.onload = function () {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        // Limpieza
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(pdfUrl);
+        }, 1000);
+      };
+
+      // === Guardar PDF automáticamente ===
+      const nombreArchivo = `Factura_Rosary_${fechaStr}_${horaStr.replace(/:/g, "-")}.pdf`;
+      doc.save(nombreArchivo);
+    } catch (error) {
+      console.error("Error al generar el ticket:", error);
+    }
+  };
+
+  logo.onerror = function () {
+    alert("No se pudo cargar el logo. Verifica que el archivo 'logo rosary.jpg' esté en la misma carpeta.");
+  };
 }
 
 
