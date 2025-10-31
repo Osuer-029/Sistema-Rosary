@@ -303,7 +303,6 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
     return;
   }
 
-  // Calcular total
   let total = 0;
   listaProductos.forEach(p => {
     total += (p.precio || 0) * (p.cantidad || 1);
@@ -313,10 +312,8 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
   const fechaStr = fecha.toLocaleDateString("es-DO");
   const horaStr = fecha.toLocaleTimeString("es-DO");
 
-  // Ruta del logo (debe estar junto al index.html)
-  const logoPath = "logo rosary.jpg";
+  const logoPath = "logo rosary.jpg"; // asegúrate de tener este archivo junto al index.html
 
-  // HTML optimizado para 80mm térmica
   const ticketHTML = `
     <html>
     <head>
@@ -328,34 +325,42 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
           font-family: 'Courier New', monospace;
           font-size: 10pt;
           margin: 0;
-          padding: 6px;
-          width: 78mm;
-          box-sizing: border-box;
+          padding: 8px 0;
+          width: 74mm; /* ancho más seguro */
+          display: flex;
+          justify-content: center;
         }
-        .center { text-align: center; }
-        .linea { border-top: 1px dashed #000; margin: 4px 0; }
+        .ticket {
+          width: 90%;
+          text-align: center;
+        }
+        .linea { border-top: 1px dashed #000; margin: 5px 0; }
         table {
           width: 100%;
           border-collapse: collapse;
           table-layout: fixed;
+          margin: 0 auto;
         }
         td {
           padding: 2px 0;
           word-wrap: break-word;
         }
-        .producto { width: 48%; }
+        .producto { width: 45%; text-align: left; }
         .cantidad { width: 20%; text-align: center; }
-        .total { width: 30%; text-align: right; }
-        .right { text-align: right; }
+        .total { width: 25%; text-align: right; }
         img.logo {
-          width: 80px;
+          width: 85px;
           height: auto;
           margin-bottom: 5px;
+        }
+        .footer {
+          margin-top: 8px;
+          font-size: 9pt;
         }
       </style>
     </head>
     <body>
-      <div class="center">
+      <div class="ticket">
         <img src="${logoPath}" alt="Logo Rosary" class="logo"><br>
         <strong>HELADERÍA ROSARY</strong><br>
         Villa González - Santiago<br>
@@ -363,50 +368,48 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
         <div class="linea"></div>
         <small>Fecha: ${fechaStr} - Hora: ${horaStr}</small><br>
         <div class="linea"></div>
-      </div>
 
-      <table>
-        <thead>
-          <tr>
-            <td class="producto"><b>Producto</b></td>
-            <td class="cantidad"><b>Cant</b></td>
-            <td class="total"><b>Total</b></td>
-          </tr>
-        </thead>
-        <tbody>
-          ${listaProductos.map(p => `
+        <table>
+          <thead>
             <tr>
-              <td class="producto">${p.nombre.length > 16 ? p.nombre.slice(0,16) + "…" : p.nombre}</td>
-              <td class="cantidad">${p.cantidad}</td>
-              <td class="total">RD$ ${(p.precio * p.cantidad).toFixed(2)}</td>
+              <td class="producto"><b>Producto</b></td>
+              <td class="cantidad"><b>Cant</b></td>
+              <td class="total"><b>Total</b></td>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${listaProductos.map(p => `
+              <tr>
+                <td class="producto">${p.nombre.length > 16 ? p.nombre.slice(0,16) + "…" : p.nombre}</td>
+                <td class="cantidad">${p.cantidad}</td>
+                <td class="total">RD$ ${(p.precio * p.cantidad).toFixed(2)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
 
-      <div class="linea"></div>
-      <div class="center"><strong>TOTAL: RD$ ${total.toFixed(2)}</strong></div>
-      <div class="linea"></div>
+        <div class="linea"></div>
+        <div><strong>TOTAL: RD$ ${total.toFixed(2)}</strong></div>
+        <div class="linea"></div>
 
-      <div class="center">
-        ¡Gracias por preferirnos!<br>
-        Vuelva pronto :)
+        <div class="footer">
+          ¡Gracias por preferirnos!<br>
+          ¡Vuelva pronto!
+        </div>
       </div>
     </body>
     </html>
   `;
 
-  // Crear ventana temporal para impresión directa
-  const printWin = window.open('', '', 'width=400,height=600');
+  const printWin = window.open('', '', 'width=400,height=800');
   printWin.document.open();
   printWin.document.write(ticketHTML);
   printWin.document.close();
 
-  // Esperar a que cargue y mandar a imprimir
   printWin.onload = function () {
     printWin.focus();
     printWin.print();
-    setTimeout(() => printWin.close(), 500);
+    setTimeout(() => printWin.close(), 600);
   };
 }
 
