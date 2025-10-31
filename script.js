@@ -306,114 +306,117 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
   }
 
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: "pt", format: [300, 800] }); // 80mm de ancho (estilo impresora térmica)
-  let y = 20;
+  // Formato 80mm ancho × 200mm alto (se ajusta automáticamente al contenido)
+  const doc = new jsPDF({
+    unit: "mm",
+    format: [80, 200],
+  });
+
+  let y = 8;
 
   // ===============================
-  // 1️⃣ Agregar logo (opcional)
+  // 1️⃣ Logo
   // ===============================
   try {
     const img = new Image();
-    img.src = "logo rosary.jpg"; // Debe estar en la raíz del proyecto
+    img.src = "logo rosary.jpg"; // Debe estar en la misma carpeta del proyecto
     await new Promise((resolve) => {
       img.onload = resolve;
-      img.onerror = resolve; // Si falla, continúa sin logo
+      img.onerror = resolve;
     });
-    doc.addImage(img, "JPEG", 100, y, 100, 100);
-    y += 110;
+    doc.addImage(img, "JPEG", 20, y, 40, 40); // centrado en 80mm
+    y += 45;
   } catch (e) {
-    console.warn("No se pudo cargar el logo:", e);
+    console.warn("⚠️ No se pudo cargar el logo:", e);
   }
 
   // ===============================
   // 2️⃣ Encabezado
   // ===============================
   doc.setFont("Courier", "bold");
-  doc.setFontSize(12);
-  doc.text("HELADERÍA ROSARY", 150, y, { align: "center" }); y += 18;
+  doc.setFontSize(11);
+  doc.text("HELADERÍA ROSARY", 40, y, { align: "center" }); y += 5;
   doc.setFont("Courier", "normal");
-  doc.setFontSize(9);
-  doc.text("Villa González - Santiago", 150, y, { align: "center" }); y += 12;
-  doc.text("Tel: +1 (809) 790-4593", 150, y, { align: "center" }); y += 12;
-
-  doc.setFont("Courier", "bold");
-  doc.setFontSize(10);
-  doc.text("RECIBO DE PRODUCTOS", 150, y, { align: "center" }); y += 15;
+  doc.setFontSize(8);
+  doc.text("Villa González - Santiago", 40, y, { align: "center" }); y += 4;
+  doc.text("Tel: +1 (809) 790-4593", 40, y, { align: "center" }); y += 6;
+  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 6;
 
   const fecha = new Date();
-  const fechaStr = fecha.toLocaleDateString("es-ES");
-  const horaStr = fecha.toLocaleTimeString("es-ES");
-  doc.setFont("Courier", "normal");
-  doc.text(`Fecha: ${fechaStr}   Hora: ${horaStr}`, 150, y, { align: "center" }); y += 15;
-
-  doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
+  const fechaStr = fecha.toLocaleDateString("es-DO");
+  const horaStr = fecha.toLocaleTimeString("es-DO");
+  doc.text(`Fecha: ${fechaStr} Hora: ${horaStr}`, 40, y, { align: "center" }); y += 6;
+  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 6;
 
   // ===============================
-  // 3️⃣ Lista de productos
+  // 3️⃣ Encabezado de columnas
   // ===============================
   doc.setFont("Courier", "bold");
-  doc.text("Producto", 15, y);
-  doc.text("Cant", 140, y, { align: "center" });
-  doc.text("P.Unit", 190, y, { align: "center" });
-  doc.text("Total", 270, y, { align: "right" });
-  y += 12;
-
+  doc.text("Prod", 4, y);
+  doc.text("Cant", 32, y);
+  doc.text("P.Unit", 50, y);
+  doc.text("Total", 70, y, { align: "right" });
+  y += 5;
   doc.setFont("Courier", "normal");
-  doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
+  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 5;
 
+  // ===============================
+  // 4️⃣ Lista de productos
+  // ===============================
   let total = 0;
   listaProductos.forEach((p) => {
-    const nombre = p.nombre.length > 16 ? p.nombre.slice(0, 16) + "..." : p.nombre;
+    const nombre = p.nombre.length > 10 ? p.nombre.slice(0, 10) + "..." : p.nombre;
     const cant = p.cantidad || 1;
     const precioUnit = Number(p.precio).toFixed(2);
     const subtotal = (Number(p.precio) * cant).toFixed(2);
 
-    doc.text(nombre, 15, y);
-    doc.text(String(cant), 140, y, { align: "center" });
-    doc.text(precioUnit, 190, y, { align: "center" });
-    doc.text(subtotal, 270, y, { align: "right" });
+    doc.text(nombre, 4, y);
+    doc.text(String(cant), 33, y);
+    doc.text(precioUnit, 52, y);
+    doc.text(subtotal, 75, y, { align: "right" });
 
     total += Number(p.precio) * cant;
-    y += 14;
+    y += 5;
   });
 
-  doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
+  doc.text("----------------------------------------", 40, y, { align: "center" }); y += 5;
 
   // ===============================
-  // 4️⃣ Total
+  // 5️⃣ Total
   // ===============================
   doc.setFont("Courier", "bold");
-  doc.text(`TOTAL: RD$ ${total.toFixed(2)}`, 150, y, { align: "center" }); y += 20;
+  doc.text(`TOTAL: RD$ ${total.toFixed(2)}`, 40, y, { align: "center" }); y += 8;
 
   // ===============================
-  // 5️⃣ Pie de página
+  // 6️⃣ Pie del ticket
   // ===============================
   doc.setFont("Courier", "normal");
-  doc.setFontSize(9);
-  doc.text("¡Gracias por preferirnos!", 150, y, { align: "center" }); y += 12;
-  doc.text("Vuelva pronto!", 150, y, { align: "center" }); y += 12;
-  doc.text("----------------------------------------", 150, y, { align: "center" });
+  doc.setFontSize(8);
+  doc.text("¡Gracias por preferirnos!", 40, y, { align: "center" }); y += 4;
+  doc.text("Vuelva pronto!", 40, y, { align: "center" }); y += 4;
+  doc.text("----------------------------------------", 40, y, { align: "center" });
 
   // ===============================
-  // 6️⃣ Guardar PDF e imprimir directamente
+  // 7️⃣ Impresión directa y guardado
   // ===============================
   const blob = doc.output("blob");
-
-  // 🔹 Opción 1: Imprimir automáticamente sin abrir nueva pestaña
   const url = URL.createObjectURL(blob);
+
   const iframe = document.createElement("iframe");
   iframe.style.display = "none";
   iframe.src = url;
   document.body.appendChild(iframe);
+
   iframe.onload = () => {
     iframe.contentWindow.focus();
-    iframe.contentWindow.print();
+    iframe.contentWindow.print(); // 🔹 Imprime directo al printer predeterminado
   };
 
-  // 🔹 Opción 2: Guardar PDF automáticamente (si lo deseas)
+  // Guardar PDF automáticamente
   const fechaHora = fecha.toISOString().replace(/[:.]/g, "-");
   doc.save(`ticket-${fechaHora}.pdf`);
 }
+
 
 
 
