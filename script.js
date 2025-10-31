@@ -297,133 +297,124 @@ function mostrarProductosSeleccionados(lista) {
 
 // ... (código anterior)
 
-function imprimirTicket(listaProductos, cliente = { nombre: "General", telefono: "No disponible" }) {
+async function imprimirTicket(listaProductos, cliente = { nombre: "General", telefono: "No disponible" }) {
+  console.log("🧾 Ejecutando imprimirTicket()", listaProductos);
+
+  if (!listaProductos || listaProductos.length === 0) {
+    alert("No hay productos en la lista para imprimir.");
+    return;
+  }
+
   const { jsPDF } = window.jspdf;
-
-  // Formato 80mm de ancho (~226pt) y 300mm de alto (~850pt)
-  const doc = new jsPDF({ unit: "pt", format: [226.77, 850] });
-  const ancho = 226.77;
+  const doc = new jsPDF({ unit: "pt", format: [300, 800] }); // 80mm de ancho (estilo impresora térmica)
   let y = 20;
+
+  // ===============================
+  // 1️⃣ Agregar logo (opcional)
+  // ===============================
+  try {
+    const img = new Image();
+    img.src = "logo rosary.jpg"; // Debe estar en la raíz del proyecto
+    await new Promise((resolve) => {
+      img.onload = resolve;
+      img.onerror = resolve; // Si falla, continúa sin logo
+    });
+    doc.addImage(img, "JPEG", 100, y, 100, 100);
+    y += 110;
+  } catch (e) {
+    console.warn("No se pudo cargar el logo:", e);
+  }
+
+  // ===============================
+  // 2️⃣ Encabezado
+  // ===============================
+  doc.setFont("Courier", "bold");
+  doc.setFontSize(12);
+  doc.text("HELADERÍA ROSARY", 150, y, { align: "center" }); y += 18;
+  doc.setFont("Courier", "normal");
+  doc.setFontSize(9);
+  doc.text("Villa González - Santiago", 150, y, { align: "center" }); y += 12;
+  doc.text("Tel: +1 (809) 790-4593", 150, y, { align: "center" }); y += 12;
+
+  doc.setFont("Courier", "bold");
+  doc.setFontSize(10);
+  doc.text("RECIBO DE PRODUCTOS", 150, y, { align: "center" }); y += 15;
+
+  const fecha = new Date();
+  const fechaStr = fecha.toLocaleDateString("es-ES");
+  const horaStr = fecha.toLocaleTimeString("es-ES");
+  doc.setFont("Courier", "normal");
+  doc.text(`Fecha: ${fechaStr}   Hora: ${horaStr}`, 150, y, { align: "center" }); y += 15;
+
+  doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
+
+  // ===============================
+  // 3️⃣ Lista de productos
+  // ===============================
+  doc.setFont("Courier", "bold");
+  doc.text("Producto", 15, y);
+  doc.text("Cant", 140, y, { align: "center" });
+  doc.text("P.Unit", 190, y, { align: "center" });
+  doc.text("Total", 270, y, { align: "right" });
+  y += 12;
+
+  doc.setFont("Courier", "normal");
+  doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
+
   let total = 0;
+  listaProductos.forEach((p) => {
+    const nombre = p.nombre.length > 16 ? p.nombre.slice(0, 16) + "..." : p.nombre;
+    const cant = p.cantidad || 1;
+    const precioUnit = Number(p.precio).toFixed(2);
+    const subtotal = (Number(p.precio) * cant).toFixed(2);
 
-  // Cargar el logo primero y esperar
-  const logo = new Image();
-  logo.src = "logo rosary.jpg"; // debe estar en la misma carpeta
+    doc.text(nombre, 15, y);
+    doc.text(String(cant), 140, y, { align: "center" });
+    doc.text(precioUnit, 190, y, { align: "center" });
+    doc.text(subtotal, 270, y, { align: "right" });
 
-  logo.onload = function () {
-    try {
-      // === Dibuja el logo ===
-      const logoAncho = 120;
-      const logoAlto = (logo.height / logo.width) * logoAncho;
-      const logoX = (ancho - logoAncho) / 2;
-      doc.addImage(logo, "JPEG", logoX, y, logoAncho, logoAlto);
-      y += logoAlto + 10;
+    total += Number(p.precio) * cant;
+    y += 14;
+  });
 
-      // === Encabezado ===
-      doc.setFont("Courier", "bold");
-      doc.setFontSize(12);
-      doc.text("HELADERÍA ROSARY", ancho / 2, y, { align: "center" });
-      y += 18;
+  doc.text("----------------------------------------", 150, y, { align: "center" }); y += 12;
 
-      doc.setFont("Courier", "normal");
-      doc.setFontSize(9);
-      doc.text("Villa González - Santiago", ancho / 2, y, { align: "center" });
-      y += 12;
-      doc.text("Tel: +1 (809) 790-4593", ancho / 2, y, { align: "center" });
-      y += 12;
+  // ===============================
+  // 4️⃣ Total
+  // ===============================
+  doc.setFont("Courier", "bold");
+  doc.text(`TOTAL: RD$ ${total.toFixed(2)}`, 150, y, { align: "center" }); y += 20;
 
-      doc.text("----------------------------------------", ancho / 2, y, { align: "center" });
-      y += 12;
+  // ===============================
+  // 5️⃣ Pie de página
+  // ===============================
+  doc.setFont("Courier", "normal");
+  doc.setFontSize(9);
+  doc.text("¡Gracias por preferirnos!", 150, y, { align: "center" }); y += 12;
+  doc.text("Vuelva pronto!", 150, y, { align: "center" }); y += 12;
+  doc.text("----------------------------------------", 150, y, { align: "center" });
 
-      const fecha = new Date();
-      const fechaStr = fecha.toLocaleDateString("es-ES");
-      const horaStr = fecha.toLocaleTimeString("es-ES");
+  // ===============================
+  // 6️⃣ Guardar PDF e imprimir directamente
+  // ===============================
+  const blob = doc.output("blob");
 
-      doc.text(`Fecha: ${fechaStr}  Hora: ${horaStr}`, ancho / 2, y, { align: "center" });
-      y += 15;
-      doc.text("----------------------------------------", ancho / 2, y, { align: "center" });
-      y += 12;
-
-      // === Productos ===
-      doc.setFont("Courier", "bold");
-      doc.text("Producto", 10, y);
-      doc.text("Cant", 100, y, { align: "center" });
-      doc.text("P.Unit", 160, y, { align: "center" });
-      doc.text("Total", ancho - 10, y, { align: "right" });
-      y += 12;
-      doc.setFont("Courier", "normal");
-      doc.text("----------------------------------------", ancho / 2, y, { align: "center" });
-      y += 12;
-
-      listaProductos.forEach(p => {
-        const nombre = p.nombre.length > 12 ? p.nombre.slice(0, 12) + "..." : p.nombre;
-        const cant = p.cantidad || 1;
-        const precioUnit = Number(p.precio).toFixed(2);
-        const subtotal = (cant * p.precio).toFixed(2);
-
-        doc.text(nombre, 10, y);
-        doc.text(String(cant), 100, y, { align: "center" });
-        doc.text(precioUnit, 160, y, { align: "center" });
-        doc.text(subtotal, ancho - 10, y, { align: "right" });
-
-        total += cant * p.precio;
-        y += 14;
-      });
-
-      doc.text("----------------------------------------", ancho / 2, y, { align: "center" });
-      y += 12;
-
-      doc.setFont("Courier", "bold");
-      doc.text(`TOTAL: RD$ ${total.toFixed(2)}`, ancho / 2, y, { align: "center" });
-      y += 20;
-
-      // === Pie ===
-      doc.setFont("Courier", "normal");
-      doc.setFontSize(9);
-      doc.text("¡Gracias por preferirnos!", ancho / 2, y, { align: "center" });
-      y += 12;
-      doc.text("Vuelva pronto!", ancho / 2, y, { align: "center" });
-      y += 12;
-      doc.text("----------------------------------------", ancho / 2, y, { align: "center" });
-
-      // Ajustar la altura real
-      doc.internal.pageSize.height = y + 20;
-
-      // === Generar Blob y preparar para impresión ===
-      const pdfBlob = doc.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-
-      // === Crear iframe invisible para imprimir ===
-      const iframe = document.createElement("iframe");
-      iframe.style.position = "fixed";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.border = "none";
-      iframe.src = pdfUrl;
-      document.body.appendChild(iframe);
-
-      iframe.onload = function () {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-        // Limpieza
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(pdfUrl);
-        }, 1000);
-      };
-
-      // === Guardar PDF automáticamente ===
-      const nombreArchivo = `Factura_Rosary_${fechaStr}_${horaStr.replace(/:/g, "-")}.pdf`;
-      doc.save(nombreArchivo);
-    } catch (error) {
-      console.error("Error al generar el ticket:", error);
-    }
+  // 🔹 Opción 1: Imprimir automáticamente sin abrir nueva pestaña
+  const url = URL.createObjectURL(blob);
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = url;
+  document.body.appendChild(iframe);
+  iframe.onload = () => {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
   };
 
-  logo.onerror = function () {
-    alert("No se pudo cargar el logo. Verifica que el archivo 'logo rosary.jpg' esté en la misma carpeta.");
-  };
+  // 🔹 Opción 2: Guardar PDF automáticamente (si lo deseas)
+  const fechaHora = fecha.toISOString().replace(/[:.]/g, "-");
+  doc.save(`ticket-${fechaHora}.pdf`);
 }
+
 
 
 
