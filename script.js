@@ -493,22 +493,67 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
   const btnImprimir = document.getElementById("btn-imprimir-factura");
   const inputCliente = document.getElementById("inputCliente");
+  const pagoInput = document.getElementById("pagoCliente");
+  const devueltaInput = document.getElementById("devueltaCliente");
 
   btnImprimir.addEventListener("click", async () => {
+    if (productosSeleccionados.length === 0) {
+      alert("No hay productos para facturar.");
+      return;
+    }
+
     const cliente = {
       nombre: inputCliente?.value || "General"
     };
 
-    // Imprimir ticket
-    await imprimirTicket(productosSeleccionados, cliente);
+    // 🔹 Calcular total y devuelta
+    let total = 0;
+    productosSeleccionados.forEach(p => {
+      total += (p.precio || 0) * (p.cantidad || 1);
+    });
+    const pago = parseFloat(pagoInput.value) || 0;
+    const devuelta = pago - total;
 
-    // 🔹 Limpiar productos seleccionados después de imprimir
-    productosSeleccionados = [];
-    mostrarProductosSeleccionados(productosSeleccionados); // Actualiza la interfaz
-    document.getElementById("pagoCliente").value = ""; // Limpiar pago
-    document.getElementById("devueltaCliente").value = "RD$ 0.00"; // Reset devuelta
+    // 🔹 Crear objeto factura
+    const factura = {
+      cliente: cliente.nombre,
+      productos: productosSeleccionados.map(p => ({
+        id: p.id,
+        nombre: p.nombre,
+        precio: p.precio,
+        cantidad: p.cantidad || 1,
+        total: (p.precio * (p.cantidad || 1))
+      })),
+      total: total,
+      pago: pago,
+      devuelta: devuelta >= 0 ? devuelta : 0,
+      fechaFactura: new Date().toISOString()
+    };
+
+    try {
+      // 🔹 Guardar factura en Firebase
+      const idFactura = await addFactura(factura);
+      console.log("Factura guardada con ID:", idFactura);
+
+      // 🔹 Imprimir ticket
+      await imprimirTicket(productosSeleccionados, cliente);
+
+      // 🔹 Limpiar interfaz para nueva venta
+      productosSeleccionados = [];
+      mostrarProductosSeleccionados(productosSeleccionados);
+      pagoInput.value = "";
+      devueltaInput.value = "RD$ 0.00";
+      inputCliente.value = "";
+
+      mostrarMensajeVisual("✅ Factura creada e impresa correctamente", "success");
+
+    } catch (error) {
+      console.error("Error al guardar o imprimir factura:", error);
+      mostrarMensajeVisual("❌ Error al crear la factura", "error");
+    }
   });
 });
+
 
 
 
