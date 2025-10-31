@@ -303,36 +303,45 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
     return;
   }
 
-  // Convertir logo a Base64 para incrustarlo
+  // 🖼️ Convertir logo a Base64 (para que se vea en cualquier navegador)
   async function getBase64Image(url) {
-    const res = await fetch(url);
-    const blob = await res.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.readAsDataURL(blob);
-    });
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      console.warn("No se pudo cargar el logo:", e);
+      return "";
+    }
   }
 
-  const logoBase64 = await getBase64Image("logo rosary.jpg"); // asegúrate de tenerlo junto al script
+  const logoBase64 = await getBase64Image("logo rosary.jpg"); // asegúrate que el archivo exista junto al index.html
 
+  // 🧮 Calcular total
   let total = 0;
   listaProductos.forEach(p => {
     total += (p.precio || 0) * (p.cantidad || 1);
   });
 
+  // 🕒 Fecha y hora
   const fecha = new Date();
   const fechaStr = fecha.toLocaleDateString("es-DO");
   const horaStr = fecha.toLocaleTimeString("es-DO");
 
+  // ==============================
+  // 🧾 Estructura del ticket HTML
+  // ==============================
   const ticketHTML = `
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Factura - ${cliente.nombre}</title>
+  <title>Ticket - Heladería Rosary</title>
   <style>
-    /* Fuerza el inicio del ticket sin márgenes ni zona blanca */
     @page { size: 80mm auto; margin: 0; }
 
     html, body {
@@ -342,7 +351,7 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
       background: #fff;
     }
 
-    /* 👇 Este truco evita el margen superior “fantasma” */
+    /* 🔥 Elimina el espacio blanco superior */
     body::before {
       content: "";
       display: block;
@@ -351,16 +360,24 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
       padding: 0;
     }
 
+    body {
+      font-family: 'Courier New', monospace;
+      font-size: 10pt;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
     .ticket {
-      width: 74mm;
-      margin: 0 auto;
+      width: 72mm;
       text-align: center;
       line-height: 1.3;
-      padding: 0; /* sin relleno */
+      margin: 0 auto;
+      padding: 0;
     }
 
     img.logo {
-      width: 100px;
+      width: 110px;
       height: auto;
       display: block;
       margin: 0 auto 4px auto;
@@ -372,7 +389,7 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
     }
 
     table {
-      width: 100%;
+      width: 92%;
       border-collapse: collapse;
       table-layout: fixed;
       margin: 0 auto;
@@ -383,8 +400,9 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
       word-wrap: break-word;
     }
 
-    .left { text-align: left; width: 40%; }
-    .right { text-align: right; width: 60%; }
+    .producto { width: 48%; text-align: left; }
+    .cantidad { width: 20%; text-align: center; }
+    .total { width: 25%; text-align: right; }
 
     .footer {
       margin-top: 6px;
@@ -399,20 +417,30 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
     Villa González - Santiago<br>
     Tel: +1 (809) 790-4593<br>
     <div class="linea"></div>
-    <small>Fecha: ${fechaStr} — Hora: ${horaStr}</small><br>
+    <small>Fecha: ${fechaStr} - Hora: ${horaStr}</small><br>
     <div class="linea"></div>
 
     <table>
-      <tr><td class="left">Cliente:</td><td class="right">${cliente.nombre}</td></tr>
-      <tr><td class="left">Tel:</td><td class="right">${cliente.telefono || 'No disponible'}</td></tr>
-      <tr><td class="left">Servicio:</td><td class="right">${cliente.servicio}${cliente.tipoServicio ? ' — ' + cliente.tipoServicio : ''}</td></tr>
-      <tr><td class="left">Monto:</td><td class="right">RD$ ${pago.monto.toFixed(2)}</td></tr>
-      <tr><td class="left">Meses:</td><td class="right">${pago.meses}</td></tr>
-      ${pago.atrasados > 0 ? `<tr><td class="left">Atrasados:</td><td class="right">${pago.atrasados}</td></tr>` : ""}
+      <thead>
+        <tr>
+          <td class="producto"><b>Producto</b></td>
+          <td class="cantidad"><b>Cant</b></td>
+          <td class="total"><b>Total</b></td>
+        </tr>
+      </thead>
+      <tbody>
+        ${listaProductos.map(p => `
+          <tr>
+            <td class="producto">${p.nombre.length > 16 ? p.nombre.slice(0, 16) + "…" : p.nombre}</td>
+            <td class="cantidad">${p.cantidad}</td>
+            <td class="total">RD$ ${(p.precio * p.cantidad).toFixed(2)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
     </table>
 
     <div class="linea"></div>
-    <strong>TOTAL: RD$ ${pago.monto.toFixed(2)}</strong>
+    <strong>TOTAL: RD$ ${total.toFixed(2)}</strong>
     <div class="linea"></div>
 
     <div class="footer">
@@ -422,7 +450,7 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
   </div>
 
   <script>
-    // 🖨️ Forzar impresión sin pausa visual
+    // 🖨️ Imprimir directo sin márgenes y cerrar ventana
     window.onload = function() {
       document.body.style.marginTop = "0px";
       window.print();
@@ -431,14 +459,17 @@ async function imprimirTicket(listaProductos, cliente = { nombre: "General", tel
   </script>
 </body>
 </html>
+`;
 
-
-  `;
-
-  const blob = new Blob([ticketHTML], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const printWin = window.open(url, '_blank', 'width=400,height=800');
+  // ==============================
+  // 🖨️ Crear ventana e imprimir
+  // ==============================
+  const printWin = window.open("", "", "width=400,height=800");
+  printWin.document.open();
+  printWin.document.write(ticketHTML);
+  printWin.document.close();
 }
+
 
 
 
