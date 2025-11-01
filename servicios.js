@@ -705,13 +705,27 @@ function limpiar() {
   if (tipoServicioSelect) tipoServicioSelect.value = "Televisión";
 }
 
-// ===============================================
-// 11. BUSCADOR CLIENTES
-// ===============================================
-document.getElementById("btn-buscar").onclick = () => {
-  const term = document.getElementById("buscador-input").value.toLowerCase();
-  render(clientes.filter(c => c.nombre.toLowerCase().includes(term) || c.servicio.toLowerCase().includes(term) || (c.tipoServicio || '').toLowerCase().includes(term)));
-};
+const buscadorInput = document.getElementById("buscador-input");
+
+// Filtrar clientes mientras escribes
+buscadorInput.addEventListener("input", () => {
+    const term = buscadorInput.value.toLowerCase().trim();
+
+    if (!term) {
+        // Si el input está vacío, mostrar todos los clientes
+        render(clientes);
+        return;
+    }
+
+    const filtrados = clientes.filter(c =>
+        (c.nombre || "").toLowerCase().includes(term) ||
+        (c.servicio || "").toLowerCase().includes(term) ||
+        (c.tipoServicio || "").toLowerCase().includes(term)
+    );
+
+    render(filtrados);
+});
+
 
 // ===============================================
 // 12. INICIALIZAR

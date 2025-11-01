@@ -160,17 +160,26 @@ function mostrarProductos(lista) {
     const card = document.createElement("div");
     card.className = "producto-card";
     card.innerHTML = `
-      <img src="${p.imagen || 'https://via.placeholder.com/100'}" alt="${p.nombre}">
-      <h4>${p.nombre || 'Sin nombre'}</h4>
-      <p>RD$ ${Number(p.precio || 0).toFixed(2)}</p>
-    `;
+  <img src="${p.imagen || 'https://via.placeholder.com/100'}" alt="${p.nombre}">
+  <h4>${p.nombre || 'Sin nombre'}</h4>
+  <p>RD$ ${Number(p.precio || 0).toFixed(2)}</p>
+  <small>Stock: ${p.stock || 0}</small>
+`;
+
     listaProductos.appendChild(card);
 
-    card.addEventListener("click", () => {
-      productosSeleccionados.push(p);
-      mostrarProductosSeleccionados(productosSeleccionados);
-      mostrarMensajeVisual(`✅ ${p.nombre} agregado`, "success");
+    card.addEventListener("click", async () => {
+    // Revisar stock
+    if ((p.stock || 0) <= 0) {
+        mostrarMensajeVisual(`❌ ${p.nombre} agotado`, "error");
+        return;
+    }
+
+    productosSeleccionados.push(p);
+    mostrarProductosSeleccionados(productosSeleccionados);
+    mostrarMensajeVisual(`✅ ${p.nombre} agregado`, "success");
     });
+
   });
 }
 
@@ -409,14 +418,6 @@ window.onload = function() {
 }
 
 
-
-
-
-
-
-
-
-
 // ================================
 // Escáner de código de barras optimizado (para pistola lectora)
 // ================================
@@ -452,11 +453,17 @@ document.addEventListener("keydown", (e) => {
       (p) => (p.codigo || "").toString().trim() === codigoEscaneado
     );
 
-    if (productoEncontrado) {
-      productosSeleccionados.push(productoEncontrado);
-      mostrarProductosSeleccionados(productosSeleccionados);
-      mostrarMensajeVisual(`✅ ${productoEncontrado.nombre} agregado`, "success");
-    } else {
+   if (productoEncontrado) {
+    if ((productoEncontrado.stock || 0) <= 0) {
+        mostrarMensajeVisual(`❌ ${productoEncontrado.nombre} agotado`, "error");
+        return;
+    }
+
+    productosSeleccionados.push(productoEncontrado);
+    mostrarProductosSeleccionados(productosSeleccionados);
+    mostrarMensajeVisual(`✅ ${productoEncontrado.nombre} agregado`, "success");
+}
+ else {
       mostrarMensajeVisual("❌ Producto no encontrado", "error");
     }
   }
@@ -490,70 +497,81 @@ document.addEventListener('keydown', (e) => {
 // ================================
 // Botón Imprimir Factura
 // ================================
+// ================================
+// Facturación y actualización de stock
+// ================================
 document.addEventListener('DOMContentLoaded', () => {
-  const btnImprimir = document.getElementById("btn-imprimir-factura");
-  const inputCliente = document.getElementById("inputCliente");
-  const pagoInput = document.getElementById("pagoCliente");
-  const devueltaInput = document.getElementById("devueltaCliente");
+    const btnImprimir = document.getElementById("btn-imprimir-factura");
+    const inputCliente = document.getElementById("inputCliente");
+    const pagoInput = document.getElementById("pagoCliente");
+    const devueltaInput = document.getElementById("devueltaCliente");
 
-  btnImprimir.addEventListener("click", async () => {
-    if (productosSeleccionados.length === 0) {
-      alert("No hay productos para facturar.");
-      return;
-    }
+    btnImprimir.addEventListener("click", async () => {
+        if (productosSeleccionados.length === 0) return mostrarMensajeVisual("No hay productos para facturar", "error");
 
-    const cliente = {
-      nombre: inputCliente?.value || "General"
-    };
+        const cliente = { nombre: inputCliente?.value || "General" };
 
-    // 🔹 Calcular total y devuelta
-    let total = 0;
-    productosSeleccionados.forEach(p => {
-      total += (p.precio || 0) * (p.cantidad || 1);
+        const productosAgrupados = {};
+        productosSeleccionados.forEach(p => {
+            if (productosAgrupados[p.id]) productosAgrupados[p.id].cantidad += 1;
+            else productosAgrupados[p.id] = { ...p, cantidad: 1 };
+        });
+
+        const productosFinal = Object.values(productosAgrupados);
+        let total = 0;
+        productosFinal.forEach(p => total += (p.precio || 0) * p.cantidad);
+        const pago = parseFloat(pagoInput.value) || 0;
+        const devuelta = pago - total;
+
+        const factura = {
+            cliente: cliente.nombre,
+            productos: productosFinal.map(p => ({
+                id: p.id,
+                nombre: p.nombre,
+                precio: p.precio,
+                cantidad: p.cantidad,
+                total: p.precio * p.cantidad
+            })),
+            total,
+            pago,
+            devuelta: devuelta >= 0 ? devuelta : 0,
+            fechaFactura: new Date().toISOString()
+        };
+
+        try {
+            const idFactura = await addFactura(factura);
+
+            // Actualizar stock en Firebase
+            for (const p of productosFinal) {
+                const docRef = doc(db, "inventario", p.id);
+                const productoActual = productos.find(prod => prod.id === p.id);
+                const nuevoStock = (productoActual.stock || 0) - p.cantidad;
+                await updateDoc(docRef, { stock: nuevoStock >= 0 ? nuevoStock : 0 });
+            }
+
+            await imprimirTicket(productosFinal, cliente);
+
+            productosSeleccionados = [];
+            mostrarProductosSeleccionados(productosSeleccionados);
+            pagoInput.value = "";
+            devueltaInput.value = "RD$ 0.00";
+            inputCliente.value = "";
+
+            mostrarMensajeVisual("✅ Factura creada e impresa correctamente", "success");
+
+        } catch (error) {
+            console.error(error);
+            mostrarMensajeVisual("❌ Error al crear la factura", "error");
+        }
     });
-    const pago = parseFloat(pagoInput.value) || 0;
-    const devuelta = pago - total;
-
-    // 🔹 Crear objeto factura
-    const factura = {
-      cliente: cliente.nombre,
-      productos: productosSeleccionados.map(p => ({
-        id: p.id,
-        nombre: p.nombre,
-        precio: p.precio,
-        cantidad: p.cantidad || 1,
-        total: (p.precio * (p.cantidad || 1))
-      })),
-      total: total,
-      pago: pago,
-      devuelta: devuelta >= 0 ? devuelta : 0,
-      fechaFactura: new Date().toISOString()
-    };
-
-    try {
-      // 🔹 Guardar factura en Firebase
-      const idFactura = await addFactura(factura);
-      console.log("Factura guardada con ID:", idFactura);
-
-      // 🔹 Imprimir ticket
-      await imprimirTicket(productosSeleccionados, cliente);
-
-      // 🔹 Limpiar interfaz para nueva venta
-      productosSeleccionados = [];
-      mostrarProductosSeleccionados(productosSeleccionados);
-      pagoInput.value = "";
-      devueltaInput.value = "RD$ 0.00";
-      inputCliente.value = "";
-
-      mostrarMensajeVisual("✅ Factura creada e impresa correctamente", "success");
-
-    } catch (error) {
-      console.error("Error al guardar o imprimir factura:", error);
-      mostrarMensajeVisual("❌ Error al crear la factura", "error");
-    }
-  });
 });
 
+for (const p of productosSeleccionados) {
+    const docRef = doc(db, "inventario", p.id);
+    const productoActual = productos.find(prod => prod.id === p.id);
+    const nuevoStock = (productoActual.stock || 0) - (p.cantidad || 1);
+    await updateDoc(docRef, { stock: nuevoStock >= 0 ? nuevoStock : 0 });
+}
 
 
 

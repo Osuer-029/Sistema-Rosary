@@ -38,8 +38,8 @@
 
     <label for="tipo-servicio">Tipo de servicio</label>
     <select id="tipo-servicio">
-    <option value="Televisión">📺 Televisión</option>
-    <option value="Móvil">📱 Móvil</option>
+    <option value="Tv">📺 Tv</option>
+    <option value="celular">📱 celular</option>
     </select>
 
 
@@ -49,7 +49,7 @@
   <section class="lista-clientes">
     <h2>Clientes Registrados</h2>
 <div class="buscador-container">
-    <input type="text" id="buscador-input" placeholder="Buscar cliente o servicio...">
+    <input type="text" id="buscador-input" placeholder="Buscar cliente, servicio o tipo de servicio...">
     <button id="btn-buscar">Buscar</button> 
 </div>
     <div id="clientes-lista"></div>
@@ -72,7 +72,10 @@
       <option value="Disney+">🧞 Disney+</option>
       <option value="Amazon Prime">🚀 Amazon Prime</option>
       <option value="Otro">🧩 Otro</option>
+
+      
     </select>
+
     <div class="modal-btns">
       <button id="guardar-edicion">💾 Guardar</button>
       <button id="cancelar-edicion">❌ Cancelar</button>

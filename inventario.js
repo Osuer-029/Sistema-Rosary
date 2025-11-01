@@ -28,6 +28,7 @@ const codigoInput = document.getElementById("codigoBarra");
 const nombreInput = document.getElementById("nombreProducto");
 const precioInput = document.getElementById("precioProducto");
 const costoInput = document.getElementById("costoProducto");
+const stockInput = document.getElementById("stockProducto");
 const imagenInput = document.getElementById("imagenProducto");
 const previewImg = document.getElementById("previewImg");
 const previewText = document.getElementById("previewText");
@@ -58,6 +59,7 @@ function resetForm(){
     form.reset();
     previewImg.style.display = "none";
     previewImg.src = "";
+    stockInput.value = "";
     previewText.textContent = "Sin imagen";
     editingId = null;
     codigoInput.focus();
@@ -113,55 +115,85 @@ async function subirImagen(file, codigo){
 // ----------------------
 // GUARDAR PRODUCTO
 // ----------------------
-form.addEventListener("submit", async (e)=>{
+import { getDocs } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js"; // agregar si no está
+
+form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const codigo = codigoInput.value.trim();
     const nombre = nombreInput.value.trim();
     const precio = Number(precioInput.value) || 0;
     const costo = Number(costoInput.value) || 0;
+    const stock = Number(stockInput.value) || 0;
     const imagenFile = imagenInput.files[0] || null;
 
-    if(!codigo || !nombre){
+    if (!codigo || !nombre) {
         showToast("Completa código y nombre");
         return;
     }
 
-    try{
-        showToast("Guardando...",1200);
+    try {
+        showToast("Guardando...", 1200);
 
+        // Subir imagen si hay
         let imagenUrl = "";
-        if(imagenFile){
+        if (imagenFile) {
             const res = await subirImagen(imagenFile, codigo);
             imagenUrl = res ? res.url : "";
         }
 
-        if(editingId){
-            const docRef = doc(db, "inventario", editingId);
-            const payload = { codigo, nombre, precio, costo, updatedAt: serverTimestamp() };
-            if(imagenUrl) payload.imagen = imagenUrl;
+        // Revisar si ya existe el producto
+        const snapshot = await getDocs(inventarioCol); // <-- aquí obtenemos todos los documentos
+        let productoExistente = null;
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.codigo === codigo) {
+                productoExistente = { id: docSnap.id, data };
+            }
+        });
+
+        if (productoExistente) {
+            // Si existe, sumamos el stock
+            const docRef = doc(db, "inventario", productoExistente.id);
+            const nuevoStock = (productoExistente.data.stock || 0) + stock;
+            const payload = {
+                nombre,
+                precio,
+                costo,
+                stock: nuevoStock,
+                updatedAt: serverTimestamp()
+            };
+            if (imagenUrl) payload.imagen = imagenUrl;
             await updateDoc(docRef, payload);
-            showToast("Producto actualizado");
-            resetForm();
-            return;
+            showToast(`Producto existente actualizado. Stock sumado: ${stock}`);
+        } else {
+            // Si no existe, se crea un nuevo producto
+            await addDoc(inventarioCol, {
+                codigo,
+                nombre,
+                precio,
+                costo,
+                stock,
+                imagen: imagenUrl,
+                createdAt: serverTimestamp()
+            });
+            showToast("Producto agregado correctamente");
         }
 
-        await addDoc(inventarioCol, {
-            codigo, nombre, precio, costo, imagen: imagenUrl,
-            createdAt: serverTimestamp()
-        });
-        showToast("Producto agregado correctamente");
         resetForm();
 
-    }catch(err){
+    } catch (err) {
         console.error("Error al guardar producto:", err);
         showToast("Error al guardar producto.");
     }
 });
 
+
+
 // ----------------------
 // CREAR CARD
 // ----------------------
-function crearCard(id, data){
+function crearCard(id, data) {
     const card = document.createElement("article");
     card.className = "card";
     card.dataset.id = id;
@@ -176,7 +208,9 @@ function crearCard(id, data){
             </div>
             <div style="text-align:right">
                 <div class="price">$${Number(data.precio).toFixed(2)}</div>
-                <div class="muted" style="font-size:12px">Costo $${Number(data.costo).toFixed(2)}</div>
+                <div class="muted" style="font-size:12px">
+                    Costo $${Number(data.costo).toFixed(2)} | Stock: ${data.stock || 0}
+                </div>
             </div>
         </div>
         <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
@@ -188,30 +222,37 @@ function crearCard(id, data){
         </div>
     `;
 
-    card.querySelector(".btnEditar").addEventListener("click", ()=>{
+    // -------------------------------
+    // Botón editar
+    // -------------------------------
+    card.querySelector(".btnEditar").addEventListener("click", () => {
         editingId = id;
         codigoInput.value = data.codigo || "";
         nombreInput.value = data.nombre || "";
         precioInput.value = data.precio || "";
         costoInput.value = data.costo || "";
-        if(data.imagen){
+        stockInput.value = data.stock || 0; // <-- Stock se carga al editar
+        if (data.imagen) {
             previewImg.src = data.imagen;
             previewImg.style.display = "block";
             previewText.textContent = "Imagen actual";
-        }else{
+        } else {
             previewImg.style.display = "none";
             previewText.textContent = "Sin imagen";
         }
         codigoInput.focus();
-        window.scrollTo({top:0, behavior:"smooth"});
+        window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
-    card.querySelector(".btnEliminar").addEventListener("click", async ()=>{
-        if(!confirm(`Eliminar "${data.nombre}"? Esta acción no puede deshacerse.`)) return;
-        try{
+    // -------------------------------
+    // Botón eliminar
+    // -------------------------------
+    card.querySelector(".btnEliminar").addEventListener("click", async () => {
+        if (!confirm(`Eliminar "${data.nombre}"? Esta acción no puede deshacerse.`)) return;
+        try {
             await deleteDoc(doc(db, "inventario", id));
             showToast("Producto eliminado");
-        }catch(err){
+        } catch (err) {
             console.error(err);
             showToast("Error al eliminar producto");
         }
@@ -219,6 +260,7 @@ function crearCard(id, data){
 
     return card;
 }
+
 
 // ----------------------
 // ESCUCHAR INVENTARIO EN TIEMPO REAL
